@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.31025.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceRecognitionUWP", "FaceRecognitionUWP.csproj", "{5C46402D-7A1C-4719-A4F2-C8DCBA973E5A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCVBridge", "..\OpenCVBridge\OpenCVBridge.vcxproj", "{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_Inbox|ARM = Debug_Inbox|ARM
@@ -57,6 +59,30 @@ Global
 		{5C46402D-7A1C-4719-A4F2-C8DCBA973E5A}.Release|x86.ActiveCfg = Release|x86
 		{5C46402D-7A1C-4719-A4F2-C8DCBA973E5A}.Release|x86.Build.0 = Release|x86
 		{5C46402D-7A1C-4719-A4F2-C8DCBA973E5A}.Release|x86.Deploy.0 = Release|x86
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|ARM.ActiveCfg = Debug|ARM
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|ARM.Build.0 = Debug|ARM
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|ARM64.ActiveCfg = Debug|ARM64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|ARM64.Build.0 = Debug|ARM64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|x64.ActiveCfg = Debug|x64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|x64.Build.0 = Debug|x64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|x86.ActiveCfg = Debug|Win32
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug_Inbox|x86.Build.0 = Debug|Win32
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|ARM.ActiveCfg = Debug|ARM
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|ARM.Build.0 = Debug|ARM
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|ARM64.Build.0 = Debug|ARM64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|x64.ActiveCfg = Debug|x64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|x64.Build.0 = Debug|x64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|x86.ActiveCfg = Debug|Win32
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Debug|x86.Build.0 = Debug|Win32
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|ARM.ActiveCfg = Release|ARM
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|ARM.Build.0 = Release|ARM
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|ARM64.ActiveCfg = Release|ARM64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|ARM64.Build.0 = Release|ARM64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|x64.ActiveCfg = Release|x64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|x64.Build.0 = Release|x64
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|x86.ActiveCfg = Release|Win32
+		{ECE06E14-8A9E-4D8B-AD76-93A4299D519E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -43,8 +43,20 @@
             HorizontalAlignment="Left"/>
         <Button 
             Name="clearButton"
-            Content="Clear Digit"
+            Content="Clear"
             Click="clearButton_Click"
+            FontSize="26"
+            Grid.Column="1" 
+            Grid.Row="1" 
+            Height="75" 
+            Width="150"
+            Margin="25,107,0,0" 
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"/>
+        <Button
+            Name="selectButton"
+            Content="Select Image"
+            Click="selectButton_Click"
             FontSize="26"
             Grid.Column="1" 
             Grid.Row="1" 
@@ -70,8 +82,15 @@
             Grid.Column="0">
             <InkCanvas 
                     Name="inkCanvas"
-                    Height="336" 
-                    Width="336"/>
+                    Height="1"
+            Width="1"/>
+        </Grid>
+        <Grid Name="imageGrid" 
+            Background="Black"
+            Grid.Row="1"
+            Grid.Column="0">
+            <Image x:Name="inputImage" Stretch="Uniform" Height="336"
+            Width="336"/>
         </Grid>
     </Grid>
 </Page>

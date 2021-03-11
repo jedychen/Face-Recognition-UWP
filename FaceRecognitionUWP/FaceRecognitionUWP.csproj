@@ -120,11 +120,13 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Helper.cs" />
+    <Compile Include="ImageHelper.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="mnist.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="version-RFB-320.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -155,9 +157,26 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.11</Version>
     </PackageReference>
+    <PackageReference Include="OpenCV.Win.Core">
+      <Version>310.6.1</Version>
+    </PackageReference>
+    <PackageReference Include="OpenCV.Win.ImgProc">
+      <Version>310.6.1</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\mnist.onnx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\version-RFB-320.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenCVBridge\OpenCVBridge.vcxproj">
+      <Project>{ece06e14-8a9e-4d8b-ad76-93a4299d519e}</Project>
+      <Name>OpenCVBridge</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
