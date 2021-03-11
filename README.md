@@ -1,2 +1,2 @@
-# Face-Recognition-UWP
- UWP for face recognition using ML
+# Face-Recognition-ML
+ UWP of Face Recognition using ML
