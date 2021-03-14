@@ -20,7 +20,6 @@ namespace OpenCVBridge
             Windows::Graphics::Imaging::SoftwareBitmap^ input,
             Windows::Graphics::Imaging::SoftwareBitmap^ output);
 
-
     private:
         // helper functions for getting a cv::Mat from SoftwareBitmap
         bool TryConvert(Windows::Graphics::Imaging::SoftwareBitmap^ from, cv::Mat& convertedMat);

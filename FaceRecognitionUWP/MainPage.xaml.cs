@@ -18,23 +18,19 @@ using Windows.Storage.Streams;
 using System.Threading.Tasks;
 
 using System.Runtime.InteropServices;
+using Windows.UI.Xaml.Shapes;
+using Windows.UI.Xaml.Media;
 
 namespace FaceRecognitionUWP
 {
     public sealed partial class MainPage : Page
     {
-        private mnistModel modelGen;
-        private mnistInput mnistInput = new mnistInput();
-        private mnistOutput mnistOutput;
-        //private LearningModelSession    session;
-        private Helper helper = new Helper();
-        RenderTargetBitmap renderBitmap = new RenderTargetBitmap();
-
-
         private RfbModel rfbModelGen;
         private RfbInput rfbInput = new RfbInput();
         private RfbOutput rfbOutput;
         SoftwareBitmap outputBitmap;
+
+        private List<Path> faceRectangles = new List<Path>();
 
         public MainPage()
         {
@@ -71,8 +67,8 @@ namespace FaceRecognitionUWP
                         var helper = new OpenCVBridge.OpenCVHelper();
                         helper.Resize(inputBitmap, outputBitmap);
                         var img = new SoftwareBitmapSource();
-                            await img.SetBitmapAsync(outputBitmap);
-                            inputImage.Source = img;
+                        await img.SetBitmapAsync(outputBitmap);
+                        inputImage.Source = img;
                     }
                 }
             }
@@ -84,14 +80,38 @@ namespace FaceRecognitionUWP
         /// </summary>
         private async void RecognizeButton_Click(object sender, RoutedEventArgs e)
         {
+            if (faceRectangles.Count > 0)
+            {
+                foreach (var rect in faceRectangles)
+                {
+                    imageGrid.Children.Remove(rect);
+                }
+            }
+            
             rfbInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(outputBitmap);
             rfbOutput = await rfbModelGen.EvaluateAsync(rfbInput);
 
-            System.Diagnostics.Debug.WriteLine(rfbOutput.scores);
-            System.Diagnostics.Debug.WriteLine(rfbOutput.boxes);
-            
-            //confidences, boxes = ort_session.run(None, { input_name: image})
-        /*
+            List<FaceDetectionInfo> faceRects = (List<FaceDetectionInfo>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
+
+            var path1 = new Path();
+            path1.Stroke = new SolidColorBrush(Windows.UI.Colors.Red);
+            path1.StrokeThickness = 3;
+            var geometryGroup1 = new GeometryGroup();
+            foreach (FaceDetectionInfo face in faceRects)
+            { 
+                var rectangle = new RectangleGeometry();
+                float resizeRatio = 1.0f;
+                rectangle.Rect = new Rect(
+                    (int)(face.X1 * resizeRatio),
+                    (int)(face.Y1 * resizeRatio),
+                    (int)(face.X2 - face.X1) * resizeRatio,
+                    (int)(face.Y2 - face.Y1) * resizeRatio);
+                geometryGroup1.Children.Add(rectangle);
+            }
+            faceRectangles.Add(path1);
+            path1.Data = geometryGroup1;
+            imageGrid.Children.Add(path1);
+            /*
         //Convert output to datatype
         IReadOnlyList<float> vectorImage = mnistOutput.Plus214_Output_0.GetAsVectorView();
         IList<float> imageList = vectorImage.ToList();
@@ -101,7 +121,7 @@ namespace FaceRecognitionUWP
 
         //Display the results
         numberLabel.Text = maxIndex.ToString();*/
-        }            
+        }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
