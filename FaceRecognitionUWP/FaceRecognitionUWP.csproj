@@ -186,9 +186,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\mnist.onnx" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Assets\version-RFB-320.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -198,6 +195,9 @@
       <Project>{ece06e14-8a9e-4d8b-ad76-93a4299d519e}</Project>
       <Name>OpenCVBridge</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assets\Images\" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

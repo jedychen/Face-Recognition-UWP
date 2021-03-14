@@ -21,8 +21,6 @@ using System.Runtime.InteropServices;
 
 namespace FaceRecognitionUWP
 {
-    
-
     public sealed partial class MainPage : Page
     {
         private mnistModel modelGen;
@@ -41,15 +39,7 @@ namespace FaceRecognitionUWP
         public MainPage()
         {
             this.InitializeComponent();
-
             LoadFaceModelAsync();
-        }
-
-        private async Task LoadModelAsync()
-        {
-            //Load a machine learning model
-            StorageFile modelFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri($"ms-appx:///Assets/mnist.onnx"));
-            modelGen = await mnistModel.CreateFromStreamAsync(modelFile as IRandomAccessStreamReference);
         }
 
         private async Task LoadFaceModelAsync()
@@ -59,7 +49,10 @@ namespace FaceRecognitionUWP
             rfbModelGen = await RfbModel.CreateFromStreamAsync(modelFile as IRandomAccessStreamReference);
         }
 
-        private async void selectButton_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Pick an image from the local storage.
+        /// </summary>
+        private async void SelectButton_Click(object sender, RoutedEventArgs e)
         {
             var file = await ImageHelper.PickerImageAsync();
             if (file != null)
@@ -85,15 +78,20 @@ namespace FaceRecognitionUWP
             }
         }
 
-        private async void recognizeButton_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Load the picked image and preprocessed it as the model input.
+        /// The function should excute after the image is loaded.
+        /// </summary>
+        private async void RecognizeButton_Click(object sender, RoutedEventArgs e)
         {
-            rfbInput.input = FaceDetectionHelper.ConvertImageToFloatTensor(outputBitmap);
+            rfbInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(outputBitmap);
             rfbOutput = await rfbModelGen.EvaluateAsync(rfbInput);
-            Console.WriteLine(rfbOutput);
-        /*
-        //Evaluate the model
-            
 
+            System.Diagnostics.Debug.WriteLine(rfbOutput.scores);
+            System.Diagnostics.Debug.WriteLine(rfbOutput.boxes);
+            
+            //confidences, boxes = ort_session.run(None, { input_name: image})
+        /*
         //Convert output to datatype
         IReadOnlyList<float> vectorImage = mnistOutput.Plus214_Output_0.GetAsVectorView();
         IList<float> imageList = vectorImage.ToList();
@@ -103,35 +101,12 @@ namespace FaceRecognitionUWP
 
         //Display the results
         numberLabel.Text = maxIndex.ToString();*/
-        }
+        }            
 
-        async void recognizeButton2_Click()
-        {
-            //Bind model input with contents from InkCanvas
-            VideoFrame vf = await helper.GetHandWrittenImage(inkGrid);
-            mnistInput.Input3 = ImageFeatureValue.CreateFromVideoFrame(vf);
-
-            //Evaluate the model
-            mnistOutput = await modelGen.EvaluateAsync(mnistInput);
-
-            //Convert output to datatype
-            IReadOnlyList<float> vectorImage = mnistOutput.Plus214_Output_0.GetAsVectorView();
-            IList<float> imageList = vectorImage.ToList();
-
-            //LINQ query to check for highest probability digit
-            var maxIndex = imageList.IndexOf(imageList.Max());
-
-            //Display the results
-            numberLabel.Text = maxIndex.ToString();
-        }
-            
-
-        private void clearButton_Click(object sender, RoutedEventArgs e)
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             // inkCanvas.InkPresenter.StrokeContainer.Clear();
             // numberLabel.Text = "";
         }
-
-        
     }
 }

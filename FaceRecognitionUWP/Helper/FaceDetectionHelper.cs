@@ -13,6 +13,9 @@ using System.Runtime.InteropServices;
 
 namespace FaceRecognitionUWP
 {
+    /// <summary>Component for accessing pixels in SoftwareBitmap.
+    /// Reference: https://docs.microsoft.com/en-us/windows/uwp/audio-video-camera/imaging#create-or-edit-a-softwarebitmap-programmatically
+    /// </summary>
     [ComImport]
     [Guid("5B0D3235-4DBA-4D44-865E-8F1D0E4FD04D")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -20,51 +23,50 @@ namespace FaceRecognitionUWP
     {
         void GetBuffer(out byte* buffer, out uint capacity);
     }
+
+    /// <summary>Class <c>FaceDetectionHelper</c> groups all functions for Face Detection.
+    /// </summary>
     public class FaceDetectionHelper
     {
         public const int inputImageWidth = 320;
         public const int inputImageHeight = 240;
-        public static TensorFloat ConvertImageToFloatTensor(SoftwareBitmap image)
+
+        /// <summary>
+        /// PreProcessing.
+        /// Convert image data in SoftwareBitmap to TensorFloat.
+        /// </summary>
+        /// <returns>Concerted SoftwareBitmap in TensorFloat.</returns>
+        public static TensorFloat SoftwareBitmapToTensorFloat(SoftwareBitmap image)
         {
             using (BitmapBuffer buffer = image.LockBuffer(BitmapBufferAccessMode.Read))
             {
                 using (var reference = buffer.CreateReference())
                 {
+                    // Implementation Reference:
+                    // https://github.com/Microsoft/Windows-Machine-Learning/issues/22
                     unsafe
                     {
-                        byte* dataInBytes;
-                        uint capacity;
-                        ((IMemoryBufferByteAccess)reference).GetBuffer(out dataInBytes, out capacity);
+                        ((IMemoryBufferByteAccess)reference).GetBuffer(out byte* dataInBytes, out uint capacity);
 
-                        System.Diagnostics.Debug.WriteLine(capacity);
-                        // Fill-in the BGRA plane
-                        BitmapPlaneDescription bufferLayout = buffer.GetPlaneDescription(0);
+                        // System.Diagnostics.Debug.WriteLine(capacity);
                         long[] shape = { 1, 3, inputImageHeight, inputImageWidth };
                         float[] pCPUTensor = new float[3 * inputImageWidth * inputImageHeight];
-                        for (UInt32 i = 0; i < capacity; i += 4)
+                        for (int i = 0; i < capacity; i += 4)
                         {
-                            UInt32 pixelInd = i / 4;
+                            int pixelInd = i / 4;
                             pCPUTensor[pixelInd] = (float)dataInBytes[i];
-                            pCPUTensor[(bufferLayout.Height * bufferLayout.Width) + pixelInd] = (float)dataInBytes[i + 1];
-                            pCPUTensor[(bufferLayout.Height * bufferLayout.Width * 2) + pixelInd] = (float)dataInBytes[i + 2];
+                            pCPUTensor[(inputImageHeight * inputImageWidth) + pixelInd] = (float)dataInBytes[i + 1];
+                            pCPUTensor[(inputImageHeight * inputImageWidth * 2) + pixelInd] = (float)dataInBytes[i + 2];
                         }
-                        /*for (int i = 0; i < bufferLayout.Height; i++)
-                        {
-                            for (int j = 0; j < bufferLayout.Width; j++)
-                            {
+                        
 
-                                byte value = (byte)((float)j / bufferLayout.Width * 255);
-                                dataInBytes[bufferLayout.StartIndex + bufferLayout.Stride * i + 4 * j + 0] = value;
-                                dataInBytes[bufferLayout.StartIndex + bufferLayout.Stride * i + 4 * j + 1] = value;
-                                dataInBytes[bufferLayout.StartIndex + bufferLayout.Stride * i + 4 * j + 2] = value;
-                                dataInBytes[bufferLayout.StartIndex + bufferLayout.Stride * i + 4 * j + 3] = (byte)255;
-                            }
-                        }*/
-                        for (int i = 0; i < 30; i++)
+                        /*for (int i = 0; i < 30; i++)
                         {
                             System.Diagnostics.Debug.WriteLine(pCPUTensor[i]);
                         }
                         System.Diagnostics.Debug.WriteLine("Processed");
+                        */
+                        
                         float[] processedTensor = NormalizeFloatArray(pCPUTensor);
 
                         for (int i = 0; i < 30; i++)
@@ -81,11 +83,15 @@ namespace FaceRecognitionUWP
 
         }
 
+        /// <summary>
+        /// PreProcessing.
+        /// Normalize the image data in float array.
+        /// </summary>
+        /// <returns>Float array with values between -1 to 1.</returns>
         private static float[] NormalizeFloatArray(float[] src)
         {
-            // Normalize
-            float _meanVals = 127f;
-            float _normVals = (float)(1.0 / 128);
+            const float _meanVals = 127f;
+            const float _normVals = (float)(1.0 / 128);
             var normalized = new float[src.Length];
             for (int i = 0; i < src.Length; i++)
             {

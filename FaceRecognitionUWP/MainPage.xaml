@@ -32,7 +32,7 @@
         <Button 
             Name="recognizeButton"
             Content="Recognize"
-            Click="recognizeButton_Click"
+            Click="RecognizeButton_Click"
             FontSize="26"
             Grid.Column="1" 
             Grid.Row="1" 
@@ -44,7 +44,7 @@
         <Button 
             Name="clearButton"
             Content="Clear"
-            Click="clearButton_Click"
+            Click="ClearButton_Click"
             FontSize="26"
             Grid.Column="1" 
             Grid.Row="1" 
@@ -56,7 +56,7 @@
         <Button
             Name="selectButton"
             Content="Select Image"
-            Click="selectButton_Click"
+            Click="SelectButton_Click"
             FontSize="26"
             Grid.Column="1" 
             Grid.Row="1" 
