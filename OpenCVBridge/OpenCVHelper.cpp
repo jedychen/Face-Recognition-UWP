@@ -56,3 +56,13 @@ void OpenCVHelper::Blur(SoftwareBitmap^ input, SoftwareBitmap^ output)
     }
     blur(inputMat, outputMat, cv::Size(15, 15));
 }
+
+void OpenCVHelper::Resize(SoftwareBitmap^ input, SoftwareBitmap^ output)
+{
+    Mat inputMat, outputMat;
+    if (!(TryConvert(input, inputMat) && TryConvert(output, outputMat)))
+    {
+        return;
+    }
+    resize(inputMat, outputMat, cv::Size(output->PixelWidth, output->PixelHeight));
+}
