@@ -30,6 +30,7 @@ using System.Diagnostics;
 using Windows.Media.Devices;
 using Windows.Media.Audio;
 using Windows.Media.MediaProperties;
+using System.Numerics;
 
 namespace FaceRecognitionUWP
 {
@@ -68,6 +69,8 @@ namespace FaceRecognitionUWP
 
         // Mode Control
         bool CameraMode = false;
+        Vector2 cameraFocalLength = new Vector2(3.9f, 3.9f);
+        float closestDistance = 10000.0f;
 
         public MainPage()
         {
@@ -184,6 +187,7 @@ namespace FaceRecognitionUWP
             int landmarkInputSize = 56;
             
             var faceLandmarkGeometryGroup = new GeometryGroup();
+            closestDistance = 10000.0f;
             foreach (FaceDetectionInfo faceRect in faceRects)
             {
                 int x = (int)faceRect.X1;
@@ -195,20 +199,28 @@ namespace FaceRecognitionUWP
                 landmarkInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(croppedBitmap);
                 landmarkOutput = await landmarkModelGen.EvaluateAsync(landmarkInput);
                 List<FaceLandmark> faceLandmarks = (List<FaceLandmark>)FaceLandmarkHelper.Predict(landmarkOutput.output, x, y, width, height);
-                foreach (FaceLandmark mark in faceLandmarks)
+                
+                if (faceLandmarks.Count > 0)
                 {
-                    var ellipse = new EllipseGeometry();
+                    foreach (FaceLandmark mark in faceLandmarks)
+                    {
+                        var ellipse = new EllipseGeometry();
 
-                    ellipse.Center = new Point(
-                        (int)(mark.X * scaleRatioWidth + marginHorizontal),
-                        (int)(mark.Y * scaleRatioHeight + marginVertical));
-                    ellipse.RadiusX = 2;
-                    ellipse.RadiusY = 2;
-                    faceLandmarkGeometryGroup.Children.Add(ellipse);
+                        ellipse.Center = new Point(
+                            (int)(mark.X * scaleRatioWidth + marginHorizontal),
+                            (int)(mark.Y * scaleRatioHeight + marginVertical));
+                        ellipse.RadiusX = 2;
+                        ellipse.RadiusY = 2;
+                        faceLandmarkGeometryGroup.Children.Add(ellipse);
+                    }
+                    float distance = ImageHelper.CalculateCameraDistance(cameraFocalLength, faceLandmarks[40], faceLandmarks[46]);
+                    closestDistance = distance < closestDistance ? distance : closestDistance;
                 }
+                
             }
-            
-            
+            closestDistance = closestDistance == 10000.0f ? 0.0f : closestDistance;
+            detectedFaceText.Text = $"Distance: {closestDistance} cm";
+
             // Draw rectangles of detected faces on top of image
             var faceGeometryGroup = new GeometryGroup();
             foreach (FaceDetectionInfo face in faceRects)
@@ -327,12 +339,17 @@ namespace FaceRecognitionUWP
         {
             var mediaFrameReference = sender.TryAcquireLatestFrame();
             var videoMediaFrame = mediaFrameReference?.VideoMediaFrame;
+            if(videoMediaFrame != null)
+            {
+                if(videoMediaFrame.CameraIntrinsics != null)
+                    cameraFocalLength = videoMediaFrame.CameraIntrinsics.FocalLength;
+            }
             var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
 
             if (softwareBitmap != null)
             {
-                if (softwareBitmap.BitmapPixelFormat != Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8 ||
-                    softwareBitmap.BitmapAlphaMode != Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied)
+                if (softwareBitmap.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
+                    softwareBitmap.BitmapAlphaMode != BitmapAlphaMode.Premultiplied)
                 {
                     softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
                 }

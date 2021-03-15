@@ -21,17 +21,17 @@ namespace FaceRecognitionUWP
         /// </summary>
         public static IEnumerable<FaceLandmark> Predict(TensorFloat landmarks, int startX, int startY, int imageWidth, int imageHeight)
         {
-            var landmarkList = new List<FaceLandmark>();
-            ExtractLandmarks(landmarks, landmarkList, startX, startY, imageWidth, imageHeight);
+            var faceLandmarkList = new List<FaceLandmark>();
+            ExtractLandmarks(landmarks, faceLandmarkList, startX, startY, imageWidth, imageHeight);
 
-            return landmarkList;
+            return faceLandmarkList;
         }
 
         /// <summary>
         /// PostProcessing.
         /// Generate a list of BBox containing the detected face info.
         /// </summary>
-        private static void ExtractLandmarks(TensorFloat landmarkTensors, ICollection<FaceLandmark> landmarkList, int startX, int startY, int width, int height)
+        private static void ExtractLandmarks(TensorFloat landmarkTensors, ICollection<FaceLandmark> faceLandmarkList, int startX, int startY, int width, int height)
         {
             IReadOnlyList<float> vectorLandmarks = landmarkTensors.GetAsVectorView();
             IList<float> landmarkFloatList = vectorLandmarks.ToList();
@@ -42,7 +42,7 @@ namespace FaceRecognitionUWP
                 faceLandmark.X = landmarkFloatList[i * 2] * width + startX;
                 faceLandmark.Y = landmarkFloatList[i * 2 + 1] * height + startY;
 
-                landmarkList.Add(faceLandmark);
+                faceLandmarkList.Add(faceLandmark);
             }
         }
     }

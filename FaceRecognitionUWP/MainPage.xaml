@@ -26,12 +26,14 @@
             VerticalAlignment="Center"
             Grid.Row="0"
             Grid.Column="0" />
-        <TextBlock Text="Face:"
-               FontSize="36"
-               VerticalAlignment="Center"
-               Margin="20,0,0,0"
-               Grid.Row="0"
-               Grid.Column="1" />
+        <TextBlock
+            x:Name="detectedFaceText"
+            Text=""
+            FontSize="36"
+            VerticalAlignment="Center"
+            Margin="20,0,0,0"
+            Grid.Row="0"
+            Grid.Column="1" />
         <Button 
             Name="toggleModeButton"
             Content="Image/Camera"
@@ -88,7 +90,6 @@
                    Stretch="Uniform"
                    Height="330"
                    Width="440"
-                   Source="Assets/placeholder.jpg"
                    />
         </Grid>
     </Grid>

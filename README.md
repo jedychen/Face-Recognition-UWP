@@ -1,5 +1,5 @@
-# Face-Recognition-ML
- UWP/C# - Face Detection and Landmarks using Onnx Models
+# Face-Detection-UWP
+ UWP/C# - Face Detection and Estimates using Onnx Models
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
@@ -43,8 +43,8 @@ Jedy Chen - [Portfolio Site](https://jedychen.com/) - jedy829@gmail.com
 ## Acknowledgements
 * [UWP Tutorial: Create a Windows Machine Learning UWP application (C#)](https://docs.microsoft.com/en-us/windows/ai/windows-ml/get-started-uwp)
 * [UWP Tutorial: Detect objects using ONNX in ML.NET](https://docs.microsoft.com/en-us/dotnet/machine-learning/tutorials/object-detection-onnx#use-the-model-for-scoring)
-* [UWP Tutorial: Process media frames with MediaFrameReader - UWP applications](https://docs.microsoft.com/en-us/windows/uwp/audio-video-camera/process-media-frames-with-mediaframereader)
 * [UWP Tutorial: Create or edit a SoftwareBitmap programmatically](https://docs.microsoft.com/en-us/windows/uwp/audio-video-camera/imaging#create-or-edit-a-softwarebitmap-programmatically)
-* [cunjian/pytorch_face_landmark](https://github.com/cunjian/pytorch_face_landmark)
+* [UWP Tutorial: Process media frames with MediaFrameReader - UWP applications](https://docs.microsoft.com/en-us/windows/uwp/audio-video-camera/process-media-frames-with-mediaframereader)
+* [Github: cunjian/pytorch_face_landmark](https://github.com/cunjian/pytorch_face_landmark)
+* [Github: takuya-takeuchi/UltraFaceDotNet](https://github.com/takuya-takeuchi/UltraFaceDotNet)
 * [Github: Downscale the pixel values in UWP App](https://github.com/Microsoft/Windows-Machine-Learning/issues/22)
-* [takuya-takeuchi/UltraFaceDotNet](https://github.com/takuya-takeuchi/UltraFaceDotNet)

@@ -18,6 +18,7 @@ using Windows.Media.Core;
 using System.Diagnostics;
 using Windows.Media.Devices;
 using Windows.Media.Audio;
+using System.Numerics;
 
 namespace FaceRecognitionUWP
 {
@@ -71,6 +72,15 @@ namespace FaceRecognitionUWP
             }
         }
 
-       
+        public static float CalculateCameraDistance(Vector2 focalLength, FaceLandmark leftEyePos, FaceLandmark rightEyePos)
+        {
+            float distance = 0.0f;
+            float AVERAGE_EYE_DISTANCE = 6.0f; //cm
+            float deltaX = Math.Abs(leftEyePos.X - rightEyePos.X);
+            float deltaY = Math.Abs(leftEyePos.Y - rightEyePos.Y);
+            float eyeDistance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+            distance = (float)330.0f * (AVERAGE_EYE_DISTANCE / eyeDistance);
+            return distance;
+        }
     }
 }
