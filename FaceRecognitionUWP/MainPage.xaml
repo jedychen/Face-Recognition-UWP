@@ -19,11 +19,13 @@
             <ColumnDefinition Width="250" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Detection Mode:"
-               FontSize="36"
-               VerticalAlignment="Center"
-               Grid.Row="0"
-               Grid.Column="0" />
+        <TextBlock
+            x:Name="detectionModeText"
+            Text="Face Detection"
+            FontSize="36"
+            VerticalAlignment="Center"
+            Grid.Row="0"
+            Grid.Column="0" />
         <TextBlock Text="Face:"
                FontSize="36"
                VerticalAlignment="Center"
@@ -82,8 +84,12 @@
             Background="DarkGray"
             Grid.Row="1"
             Grid.Column="0">
-            <Image x:Name="inputImage" Stretch="Uniform" Height="330"
-            Width="440"/>
+            <Image x:Name="inputImage"
+                   Stretch="Uniform"
+                   Height="330"
+                   Width="440"
+                   Source="Assets/placeholder.jpg"
+                   />
         </Grid>
     </Grid>
 </Page>

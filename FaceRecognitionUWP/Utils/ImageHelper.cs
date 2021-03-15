@@ -9,6 +9,15 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml.Media.Imaging;
+using Windows.Media.Capture.Frames;
+using Windows.Devices.Enumeration;
+using Windows.Media.Capture;
+using System.Threading;
+using Windows.UI.Core;
+using Windows.Media.Core;
+using System.Diagnostics;
+using Windows.Media.Devices;
+using Windows.Media.Audio;
 
 namespace FaceRecognitionUWP
 {
@@ -61,5 +70,7 @@ namespace FaceRecognitionUWP
                 marginVertical = 0;
             }
         }
+
+       
     }
 }

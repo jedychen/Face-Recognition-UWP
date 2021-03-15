@@ -36,8 +36,6 @@ namespace FaceRecognitionUWP
             IReadOnlyList<float> vectorLandmarks = landmarkTensors.GetAsVectorView();
             IList<float> landmarkFloatList = vectorLandmarks.ToList();
             long numAnchors = (long)Math.Ceiling(landmarkTensors.Shape[1] * 0.5);
-            System.Diagnostics.Debug.WriteLine("numAnchors");
-            System.Diagnostics.Debug.WriteLine(numAnchors);
             for (var i = 0; i < numAnchors; i++)
             {        
                 var faceLandmark = new FaceLandmark();
