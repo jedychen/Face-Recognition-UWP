@@ -42,6 +42,8 @@ namespace FaceRecognitionUWP
         /// <returns>Concerted SoftwareBitmap in TensorFloat.</returns>
         public static TensorFloat SoftwareBitmapToTensorFloat(SoftwareBitmap image)
         {
+            int width = image.PixelWidth;
+            int height = image.PixelHeight;
             using (BitmapBuffer buffer = image.LockBuffer(BitmapBufferAccessMode.Read))
             {
                 using (var reference = buffer.CreateReference())
@@ -53,14 +55,14 @@ namespace FaceRecognitionUWP
                         ((IMemoryBufferByteAccess)reference).GetBuffer(out byte* dataInBytes, out uint capacity);
 
                         // System.Diagnostics.Debug.WriteLine(capacity);
-                        long[] shape = { 1, 3, inputImageHeight, inputImageWidth };
-                        float[] pCPUTensor = new float[3 * inputImageWidth * inputImageHeight];
+                        long[] shape = { 1, 3, height, width };
+                        float[] pCPUTensor = new float[3 * width * height];
                         for (int i = 0; i < capacity; i += 4)
                         {
                             int pixelInd = i / 4;
                             pCPUTensor[pixelInd] = (float)dataInBytes[i];
-                            pCPUTensor[(inputImageHeight * inputImageWidth) + pixelInd] = (float)dataInBytes[i + 1];
-                            pCPUTensor[(inputImageHeight * inputImageWidth * 2) + pixelInd] = (float)dataInBytes[i + 2];
+                            pCPUTensor[(height * width) + pixelInd] = (float)dataInBytes[i + 1];
+                            pCPUTensor[(height * width * 2) + pixelInd] = (float)dataInBytes[i + 2];
                         }
 
 
@@ -105,7 +107,7 @@ namespace FaceRecognitionUWP
 
         /// <summary>
         /// PostProcessing.
-        /// Clip x between 0 and y.
+        /// Process scors and boxes and generate a list of face rectangles.
         /// </summary>
         public static IEnumerable<FaceDetectionInfo> Predict(TensorFloat scores, TensorFloat boxes, int top_k = -1)
         {
@@ -126,6 +128,10 @@ namespace FaceRecognitionUWP
             return (float)(x < 0 ? 0 : x > y ? y : x);
         }
 
+        /// <summary>
+        /// PostProcessing.
+        /// Generate a list of BBox containing the detected face info.
+        /// </summary>
         private static void GenerateBBox(ICollection<FaceDetectionInfo> boundingBoxCollection, TensorFloat scores, TensorFloat boxes, float scoreThreshold)
         {
             IReadOnlyList<float> vectorBoxes = boxes.GetAsVectorView();
@@ -149,6 +155,10 @@ namespace FaceRecognitionUWP
                 }
         }
 
+        /// <summary>
+        /// PostProcessing.
+        /// Filter non-overlapped detected BBox with hard NMS.
+        /// </summary>
         private static void NonMaximumSuppression(List<FaceDetectionInfo> input, ICollection<FaceDetectionInfo> output, float iou_threshold)
         {
             input.Sort((f1, f2) => f2.Score.CompareTo(f1.Score));

@@ -127,16 +127,19 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Helper\FaceDetectionHelper.cs" />
-    <Compile Include="Helper\FaceDetectionInfo.cs" />
-    <Compile Include="Helper\Helper.cs" />
-    <Compile Include="Helper\ImageHelper.cs" />
+    <Compile Include="Service\FaceDetectionHelper.cs" />
+    <Compile Include="Service\FaceDetectionInfo.cs" />
+    <Compile Include="Service\FaceLandmarkHelper.cs" />
+    <Compile Include="Service\FaceLandmarkInfo.cs" />
+    <Compile Include="Utils\Helper.cs" />
+    <Compile Include="Utils\ImageHelper.cs" />
+    <Compile Include="Service\landmark_detection_56_se_external.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="mnist.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="version-RFB-320.cs" />
+    <Compile Include="Service\version-RFB-320.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -187,7 +190,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\version-RFB-320.onnx">
+    <Content Include="Assets\Models\version-RFB-320.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -199,6 +202,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Assets\Images\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\Models\landmark_detection_56_se_external.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

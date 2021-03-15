@@ -66,3 +66,23 @@ void OpenCVHelper::Resize(SoftwareBitmap^ input, SoftwareBitmap^ output)
     }
     resize(inputMat, outputMat, cv::Size(output->PixelWidth, output->PixelHeight));
 }
+
+void OpenCVHelper::CropResize(
+    SoftwareBitmap^ input,
+    SoftwareBitmap^ output,
+    int xMin,
+    int yMin,
+    int width,
+    int height,
+    int outputWidth,
+    int outputHeight)
+{
+    Mat inputMat, outputMat;
+    if (!(TryConvert(input, inputMat) && TryConvert(output, outputMat)))
+    {
+        return;
+    }
+    cv::Rect croppedROI(xMin, yMin, width, height);
+    Mat middleMat = inputMat(croppedROI);
+    resize(middleMat, outputMat, cv::Size(outputWidth, outputHeight));
+}

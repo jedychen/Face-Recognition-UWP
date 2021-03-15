@@ -44,6 +44,8 @@ namespace FaceRecognitionUWP
         private int imageOriginalWidth = 1;
         private int imageOriginalHeight = 1;
 
+        OpenCVHelper openCVHelper = new OpenCVBridge.OpenCVHelper();
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -86,8 +88,7 @@ namespace FaceRecognitionUWP
                         imageOriginalHeight = inputBitmap.PixelHeight;
                         outputBitmap = new SoftwareBitmap(softImg.BitmapPixelFormat, FaceDetectionHelper.inputImageWidth, FaceDetectionHelper.inputImageHeight, BitmapAlphaMode.Ignore);
 
-                        var helper = new OpenCVBridge.OpenCVHelper();
-                        helper.Resize(inputBitmap, outputBitmap);
+                        openCVHelper.Resize(inputBitmap, outputBitmap);
                         var img = new SoftwareBitmapSource();
                         await img.SetBitmapAsync(inputBitmap);
                         inputImage.Source = img;
@@ -112,7 +113,8 @@ namespace FaceRecognitionUWP
             rfbOutput = await rfbModelGen.EvaluateAsync(rfbInput);
             List<FaceDetectionInfo> faceRects = (List<FaceDetectionInfo>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
 
-            // Draw rectangles of detected faces on top of image
+
+            // Calculate Scaling Ratio
             int outputWidth = 1;
             int outputHeight = 1;
             int marginHorizontal = 1;
@@ -129,10 +131,44 @@ namespace FaceRecognitionUWP
                 ref marginVertical);
             float scaleRatioWidth = (float)outputWidth / (float)FaceDetectionHelper.inputImageWidth;
             float scaleRatioHeight = (float)outputHeight / (float)FaceDetectionHelper.inputImageHeight;
-            
+
+
+            // Find face landmarks and store it in UI
+            int landmarkInputSize = 56;
+
+            var faceLandmarkPath = new Path();
+            faceLandmarkPath.Fill = new SolidColorBrush(Windows.UI.Colors.Green);
+            var faceLandmarkGeometryGroup = new GeometryGroup();
+            foreach (FaceDetectionInfo faceRect in faceRects)
+            {
+                int x = (int)faceRect.X1;
+                int y = (int)faceRect.Y1;
+                int width = (int)(faceRect.X2 - faceRect.X1) + 1;
+                int height = (int)(faceRect.Y2 - faceRect.Y1) + 1;
+                SoftwareBitmap croppedBitmap = new SoftwareBitmap(outputBitmap.BitmapPixelFormat, landmarkInputSize, landmarkInputSize, BitmapAlphaMode.Ignore);
+                openCVHelper.CropResize(outputBitmap, croppedBitmap, x, y, width, height, landmarkInputSize, landmarkInputSize);
+                landmarkInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(croppedBitmap);
+                landmarkOutput = await landmarkModelGen.EvaluateAsync(landmarkInput);
+                List<FaceLandmark> faceLandmarks = (List<FaceLandmark>)FaceLandmarkHelper.Predict(landmarkOutput.output, x, y, width, height);
+                foreach (FaceLandmark mark in faceLandmarks)
+                {
+                    var ellipse = new EllipseGeometry();
+
+                    ellipse.Center = new Point(
+                        (int)(mark.X * scaleRatioWidth + marginHorizontal),
+                        (int)(mark.Y * scaleRatioHeight + marginVertical));
+                    ellipse.RadiusX = 1;
+                    ellipse.RadiusY = 1;
+                    faceLandmarkGeometryGroup.Children.Add(ellipse);
+                }
+            }
+            facePathes.Add(faceLandmarkPath);
+            faceLandmarkPath.Data = faceLandmarkGeometryGroup;
+            // Draw rectangles of detected faces on top of image
+
             var facePath = new Path();
             facePath.Stroke = new SolidColorBrush(Windows.UI.Colors.Red);
-            facePath.StrokeThickness = 2;
+            facePath.StrokeThickness = 1;
             var faceGeometryGroup = new GeometryGroup();
             foreach (FaceDetectionInfo face in faceRects)
             { 
@@ -141,14 +177,15 @@ namespace FaceRecognitionUWP
                 rectangle.Rect = new Rect(
                     (int)(face.X1 * scaleRatioWidth + marginHorizontal),
                     (int)(face.Y1 * scaleRatioHeight + marginVertical),
-                    (int)(face.X2 - face.X1) * scaleRatioWidth,
-                    (int)(face.Y2 - face.Y1) * scaleRatioHeight) ;
+                    (int)(face.X2 - face.X1 + 1) * scaleRatioWidth,
+                    (int)(face.Y2 - face.Y1 + 1) * scaleRatioHeight) ;
                 faceGeometryGroup.Children.Add(rectangle);
             }
 
             facePathes.Add(facePath);
             facePath.Data = faceGeometryGroup;
             imageGrid.Children.Add(facePath);
+            imageGrid.Children.Add(faceLandmarkPath);
         }
 
         private void ToggleModeButton_Click(object sender, RoutedEventArgs e)

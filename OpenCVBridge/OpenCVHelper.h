@@ -20,6 +20,16 @@ namespace OpenCVBridge
             Windows::Graphics::Imaging::SoftwareBitmap^ input,
             Windows::Graphics::Imaging::SoftwareBitmap^ output);
 
+        void CropResize(
+            Windows::Graphics::Imaging::SoftwareBitmap^ input,
+            Windows::Graphics::Imaging::SoftwareBitmap^ output,
+            int xMin,
+            int yMin,
+            int width,
+            int height,
+            int outputWidth,
+            int outputHeight);
+
     private:
         // helper functions for getting a cv::Mat from SoftwareBitmap
         bool TryConvert(Windows::Graphics::Imaging::SoftwareBitmap^ from, cv::Mat& convertedMat);
