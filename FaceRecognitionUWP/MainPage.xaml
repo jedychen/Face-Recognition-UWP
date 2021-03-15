@@ -5,92 +5,85 @@
     xmlns:local="using:FaceRecognitionUWP"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Width="731.195" Height="496">
+    mc:Ignorable="d" Width="800" Height="600">
 
     <Grid
         x:Name="parentGrid"
         Margin="40">
         <Grid.RowDefinitions>
-            <RowDefinition Height="70" />
-            <RowDefinition Height="336" />
+            <RowDefinition Height="100" />
+            <RowDefinition Height="330" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="336" />
-            <ColumnDefinition Width="336" />
+            <ColumnDefinition Width="440" />
+            <ColumnDefinition Width="250" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Handwritten Digit:"
+        <TextBlock Text="Detection Mode:"
                FontSize="36"
                VerticalAlignment="Center"
                Grid.Row="0"
                Grid.Column="0" />
-        <TextBlock Text="Result:"
+        <TextBlock Text="Face:"
                FontSize="36"
                VerticalAlignment="Center"
+               Margin="20,0,0,0"
                Grid.Row="0"
                Grid.Column="1" />
         <Button 
-            Name="recognizeButton"
-            Content="Recognize"
-            Click="RecognizeButton_Click"
-            FontSize="26"
+            Name="toggleModeButton"
+            Content="Image/Camera"
+            Click="ToggleModeButton_Click"
+            FontSize="20"
             Grid.Column="1" 
             Grid.Row="1" 
-            Height="75" 
-            Width="150"
-            Margin="25,167,0,0" 
+            Height="50"
+            Width="200"
+            Margin="20,50,0,0" 
             VerticalAlignment="Top"
             HorizontalAlignment="Left"/>
         <Button 
-            Name="clearButton"
-            Content="Clear"
-            Click="ClearButton_Click"
-            FontSize="26"
+            Name="toggleDistanceButton"
+            Content="Show/Hide Distance"
+            Click="ToggleDistanceButton_Click"
+            FontSize="20"
             Grid.Column="1" 
             Grid.Row="1" 
-            Height="75" 
-            Width="150"
-            Margin="25,107,0,0" 
+            Height="50"
+            Width="200"
+            Margin="20,120,0,0" 
             VerticalAlignment="Top"
             HorizontalAlignment="Left"/>
         <Button
             Name="selectButton"
             Content="Select Image"
             Click="SelectButton_Click"
-            FontSize="26"
+            FontSize="20"
             Grid.Column="1" 
             Grid.Row="1" 
-            Height="75" 
-            Width="150"
-            Margin="25,261,0,0" 
+            Height="50"
+            Width="200"
+            Margin="20,190,0,0" 
             VerticalAlignment="Top"
             HorizontalAlignment="Left"/>
-        <TextBlock Name="numberLabel"
-            FontSize="100" 
+        <Button 
+            Name="recognizeButton"
+            Content="Recognize"
+            Click="RecognizeButton_Click"
+            FontSize="20"
             Grid.Column="1" 
-            Margin="60,0,100,192"
-            Text="" VerticalAlignment="Bottom" Grid.Row="1"/>
-        <Border BorderThickness="4"
-            BorderBrush="Black"
-            Margin="0,0,0,0"
-            Grid.Row="1"
-            Grid.Column="0"/>
-
-        <Grid Name="inkGrid" 
-            Background="Black"
-            Grid.Row="1"
-            Grid.Column="0">
-            <InkCanvas 
-                    Name="inkCanvas"
-                    Height="1"
-            Width="1"/>
-        </Grid>
+            Grid.Row="1" 
+            Height="50"
+            Width="200"
+            Margin="20,260,0,0" 
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"/>
         <Grid Name="imageGrid" 
-            Background="Black"
+            Background="DarkGray"
             Grid.Row="1"
             Grid.Column="0">
-            <Image x:Name="inputImage" Stretch="Uniform" Height="336"
-            Width="336"/>
+            <Image x:Name="inputImage" Stretch="Uniform" Height="330"
+            Width="440"/>
         </Grid>
     </Grid>
 </Page>

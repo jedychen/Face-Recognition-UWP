@@ -73,10 +73,10 @@ namespace FaceRecognitionUWP
 
                         float[] processedTensor = NormalizeFloatArray(pCPUTensor);
 
-                        for (int i = 0; i < 30; i++)
+                        /*for (int i = 0; i < 30; i++)
                         {
                             System.Diagnostics.Debug.WriteLine(processedTensor[i]);
-                        }
+                        }*/
 
                         TensorFloat tensorFloats = TensorFloat.CreateFromArray(shape, processedTensor);
                         return tensorFloats;
@@ -139,15 +139,6 @@ namespace FaceRecognitionUWP
                 if (scoreList[i * 2 + 1] > scoreThreshold)
                 {
                     var rects = new FaceDetectionInfo();
-                    /*var xCenter = boxList[i * 4] * CenterVariance * this._Priors[i][2] + this._Priors[i][0];
-                    var yCenter = boxList[i * 4 + 1] * CenterVariance * this._Priors[i][3] + this._Priors[i][1];
-                    var w = Math.Exp(boxList[i * 4 + 2] * SizeVariance) * this._Priors[i][2];
-                    var h = Math.Exp(boxList[i * 4 + 3] * SizeVariance) * this._Priors[i][3];
-
-                    rects.X1 = Clip(xCenter - w / 2.0, 1) * inputImageWidth;
-                    rects.Y1 = Clip(yCenter - h / 2.0, 1) * inputImageHeight;
-                    rects.X2 = Clip(xCenter + w / 2.0, 1) * inputImageWidth;
-                    rects.Y2 = Clip(yCenter + h / 2.0, 1) * inputImageHeight;*/
                     rects.X1 = boxList[i * 4] * inputImageWidth;
                     rects.Y1 = boxList[i * 4 + 1] * inputImageHeight;
                     rects.X2 = boxList[i * 4 + 2] * inputImageWidth;

@@ -23,6 +23,7 @@ using Windows.UI.Xaml.Media;
 
 namespace FaceRecognitionUWP
 {
+   
     public sealed partial class MainPage : Page
     {
         private RfbModel rfbModelGen;
@@ -30,7 +31,12 @@ namespace FaceRecognitionUWP
         private RfbOutput rfbOutput;
         SoftwareBitmap outputBitmap;
 
-        private List<Path> faceRectangles = new List<Path>();
+        private List<Path> facePathes = new List<Path>();
+
+        private const int imageDisplayMaxWidth = 440;
+        private const int imageDisplayMaxHeight = 330;
+        private int imageOriginalWidth = 1;
+        private int imageOriginalHeight = 1;
 
         public MainPage()
         {
@@ -62,13 +68,17 @@ namespace FaceRecognitionUWP
                         softImg = await ImageHelper.GetImageAsync(tempStream);
 
                         SoftwareBitmap inputBitmap = SoftwareBitmap.Convert(softImg, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore);
+                        imageOriginalWidth = inputBitmap.PixelWidth;
+                        imageOriginalHeight = inputBitmap.PixelHeight;
                         outputBitmap = new SoftwareBitmap(softImg.BitmapPixelFormat, FaceDetectionHelper.inputImageWidth, FaceDetectionHelper.inputImageHeight, BitmapAlphaMode.Ignore);
 
                         var helper = new OpenCVBridge.OpenCVHelper();
                         helper.Resize(inputBitmap, outputBitmap);
                         var img = new SoftwareBitmapSource();
-                        await img.SetBitmapAsync(outputBitmap);
+                        await img.SetBitmapAsync(inputBitmap);
                         inputImage.Source = img;
+
+                        ClearPreviousFaceRectangles();
                     }
                 }
             }
@@ -80,53 +90,77 @@ namespace FaceRecognitionUWP
         /// </summary>
         private async void RecognizeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (faceRectangles.Count > 0)
+
+            ClearPreviousFaceRectangles();
+
+            // Detect face using CNN models
+            rfbInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(outputBitmap);
+            rfbOutput = await rfbModelGen.EvaluateAsync(rfbInput);
+            List<FaceDetectionInfo> faceRects = (List<FaceDetectionInfo>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
+
+            // Draw rectangles of detected faces on top of image
+            int outputWidth = 1;
+            int outputHeight = 1;
+            int marginHorizontal = 1;
+            int marginVertical = 1;
+
+            ImageHelper.ImageStrechedValues(
+                imageDisplayMaxWidth,
+                imageDisplayMaxHeight,
+                imageOriginalWidth,
+                imageOriginalHeight,
+                ref outputWidth,
+                ref outputHeight,
+                ref marginHorizontal,
+                ref marginVertical);
+            float scaleRatioWidth = (float)outputWidth / (float)FaceDetectionHelper.inputImageWidth;
+            float scaleRatioHeight = (float)outputHeight / (float)FaceDetectionHelper.inputImageHeight;
+            
+            var facePath = new Path();
+            facePath.Stroke = new SolidColorBrush(Windows.UI.Colors.Red);
+            facePath.StrokeThickness = 2;
+            var faceGeometryGroup = new GeometryGroup();
+            foreach (FaceDetectionInfo face in faceRects)
+            { 
+                var rectangle = new RectangleGeometry();
+                
+                rectangle.Rect = new Rect(
+                    (int)(face.X1 * scaleRatioWidth + marginHorizontal),
+                    (int)(face.Y1 * scaleRatioHeight + marginVertical),
+                    (int)(face.X2 - face.X1) * scaleRatioWidth,
+                    (int)(face.Y2 - face.Y1) * scaleRatioHeight) ;
+                faceGeometryGroup.Children.Add(rectangle);
+            }
+
+            facePathes.Add(facePath);
+            facePath.Data = faceGeometryGroup;
+            imageGrid.Children.Add(facePath);
+        }
+
+        private void ToggleModeButton_Click(object sender, RoutedEventArgs e)
+        {
+            // inkCanvas.InkPresenter.StrokeContainer.Clear();
+            // numberLabel.Text = "";
+        }
+
+        private void ToggleDistanceButton_Click(object sender, RoutedEventArgs e)
+        {
+            // inkCanvas.InkPresenter.StrokeContainer.Clear();
+            // numberLabel.Text = "";
+        }
+
+        /// <summary>
+        /// Clear previous rectangles of detected faces
+        /// </summary>
+        private void ClearPreviousFaceRectangles()
+        {
+            if (facePathes.Count > 0)
             {
-                foreach (var rect in faceRectangles)
+                foreach (var rect in facePathes)
                 {
                     imageGrid.Children.Remove(rect);
                 }
             }
-            
-            rfbInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(outputBitmap);
-            rfbOutput = await rfbModelGen.EvaluateAsync(rfbInput);
-
-            List<FaceDetectionInfo> faceRects = (List<FaceDetectionInfo>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
-
-            var path1 = new Path();
-            path1.Stroke = new SolidColorBrush(Windows.UI.Colors.Red);
-            path1.StrokeThickness = 3;
-            var geometryGroup1 = new GeometryGroup();
-            foreach (FaceDetectionInfo face in faceRects)
-            { 
-                var rectangle = new RectangleGeometry();
-                float resizeRatio = 1.0f;
-                rectangle.Rect = new Rect(
-                    (int)(face.X1 * resizeRatio),
-                    (int)(face.Y1 * resizeRatio),
-                    (int)(face.X2 - face.X1) * resizeRatio,
-                    (int)(face.Y2 - face.Y1) * resizeRatio);
-                geometryGroup1.Children.Add(rectangle);
-            }
-            faceRectangles.Add(path1);
-            path1.Data = geometryGroup1;
-            imageGrid.Children.Add(path1);
-            /*
-        //Convert output to datatype
-        IReadOnlyList<float> vectorImage = mnistOutput.Plus214_Output_0.GetAsVectorView();
-        IList<float> imageList = vectorImage.ToList();
-
-        //LINQ query to check for highest probability digit
-        var maxIndex = imageList.IndexOf(imageList.Max());
-
-        //Display the results
-        numberLabel.Text = maxIndex.ToString();*/
-        }
-
-        private void ClearButton_Click(object sender, RoutedEventArgs e)
-        {
-            // inkCanvas.InkPresenter.StrokeContainer.Clear();
-            // numberLabel.Text = "";
         }
     }
 }
