@@ -26,11 +26,17 @@ namespace FaceRecognitionUWP
    
     public sealed partial class MainPage : Page
     {
+        // Onnx Model for face detection
         private RfbModel rfbModelGen;
         private RfbInput rfbInput = new RfbInput();
         private RfbOutput rfbOutput;
-        SoftwareBitmap outputBitmap;
 
+        // Onnx Model for face landmarks
+        private LandmarkModel landmarkModelGen;
+        private LandmarkInput landmarkInput = new LandmarkInput();
+        private LandmarkOutput landmarkOutput;
+
+        SoftwareBitmap outputBitmap;
         private List<Path> facePathes = new List<Path>();
 
         private const int imageDisplayMaxWidth = 440;
@@ -41,14 +47,22 @@ namespace FaceRecognitionUWP
         public MainPage()
         {
             this.InitializeComponent();
-            LoadFaceModelAsync();
+            LoadFaceDetectionModelAsync();
+            LoadFaceLandmarkModelAsync();
         }
 
-        private async Task LoadFaceModelAsync()
+        private async Task LoadFaceDetectionModelAsync()
         {
             //Load a machine learning model
-            StorageFile modelFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri($"ms-appx:///Assets/version-RFB-320.onnx"));
+            StorageFile modelFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri($"ms-appx:///Assets/Models/version-RFB-320.onnx"));
             rfbModelGen = await RfbModel.CreateFromStreamAsync(modelFile as IRandomAccessStreamReference);
+        }
+
+        private async Task LoadFaceLandmarkModelAsync()
+        {
+            //Load a machine learning model
+            StorageFile modelFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri($"ms-appx:///Assets/Models/landmark_detection_56_se_external.onnx"));
+            landmarkModelGen = await LandmarkModel.CreateFromStreamAsync(modelFile as IRandomAccessStreamReference);
         }
 
         /// <summary>
