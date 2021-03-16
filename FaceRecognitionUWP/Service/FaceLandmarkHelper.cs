@@ -9,6 +9,8 @@ namespace FaceRecognitionUWP
     /// </summary>
     public class FaceLandmarkHelper
     {
+        public const int inputImageDataSize = 56;
+
         /// <summary>
         /// Processes scors and boxes and generate a list of face rectangles.
         /// </summary>

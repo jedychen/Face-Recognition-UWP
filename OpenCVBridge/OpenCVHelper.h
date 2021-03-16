@@ -12,14 +12,12 @@ namespace OpenCVBridge
     public:
         OpenCVHelper() {}
 
-        void Blur(
-            Windows::Graphics::Imaging::SoftwareBitmap^ input,
-            Windows::Graphics::Imaging::SoftwareBitmap^ output);
-
+        // resizes the input image to the size of output.
         void Resize(
             Windows::Graphics::Imaging::SoftwareBitmap^ input,
             Windows::Graphics::Imaging::SoftwareBitmap^ output);
 
+        // crops the input image based on input size, resizes the cropped image to the size of output.
         bool CropResize(
             Windows::Graphics::Imaging::SoftwareBitmap^ input,
             Windows::Graphics::Imaging::SoftwareBitmap^ output,

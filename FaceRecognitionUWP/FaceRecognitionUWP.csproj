@@ -131,6 +131,7 @@
     <Compile Include="Service\FaceDetectionRectangle.cs" />
     <Compile Include="Service\FaceLandmarkHelper.cs" />
     <Compile Include="Service\FaceLandmarkInfo.cs" />
+    <Compile Include="Utils\DrawingFace.cs" />
     <Compile Include="Utils\ImageHelper.cs" />
     <Compile Include="Service\landmark_detection_56_se_external.cs" />
     <Compile Include="MainPage.xaml.cs">

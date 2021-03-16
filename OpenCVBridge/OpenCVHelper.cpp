@@ -47,16 +47,7 @@ bool OpenCVHelper::TryConvert(SoftwareBitmap^ from, Mat& convertedMat)
     return true;
 }
 
-void OpenCVHelper::Blur(SoftwareBitmap^ input, SoftwareBitmap^ output)
-{
-    Mat inputMat, outputMat;
-    if (!(TryConvert(input, inputMat) && TryConvert(output, outputMat)))
-    {
-        return;
-    }
-    blur(inputMat, outputMat, cv::Size(15, 15));
-}
-
+// resizes the input image to the size of output.
 void OpenCVHelper::Resize(SoftwareBitmap^ input, SoftwareBitmap^ output)
 {
     Mat inputMat, outputMat;
@@ -67,6 +58,11 @@ void OpenCVHelper::Resize(SoftwareBitmap^ input, SoftwareBitmap^ output)
     resize(inputMat, outputMat, cv::Size(output->PixelWidth, output->PixelHeight));
 }
 
+// crops the input image based on input size, resizes the cropped image to the size of output.
+// posX, X position of the start point for cropping
+// posY, Y position of the start point for cropping
+// width, width of the cropped image
+// height, height of the cropped image
 bool OpenCVHelper::CropResize(
     SoftwareBitmap^ input,
     SoftwareBitmap^ output,
