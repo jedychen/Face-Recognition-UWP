@@ -53,7 +53,6 @@ namespace FaceRecognitionUWP
         private int imageOriginalWidth = 1;
         private int imageOriginalHeight = 1;
         private List<Path> facePathes = new List<Path>();
-
         private Path faceLandmarkPath = new Path();
         private Path faceRectanglePath = new Path();
 
@@ -68,8 +67,9 @@ namespace FaceRecognitionUWP
         private bool taskRunning = false;
 
         // Mode Control
-        bool CameraMode = false;
-        Vector2 cameraFocalLength = new Vector2(3.9f, 3.9f);
+        bool CameraMode = false; // Or image mode: load local images
+        bool ShowDetail = true; // Display facial landmarks and distance
+        Vector2 cameraFocalLength = new Vector2(330.0f, 330.0f);
         float closestDistance = 10000.0f;
 
         public MainPage()
@@ -80,16 +80,15 @@ namespace FaceRecognitionUWP
             LoadFaceLandmarkModelAsync();
         }
 
-        private async void InitImage()
+        private void InitImage()
         {
             imageInputData = new SoftwareBitmap(BitmapPixelFormat.Bgra8, FaceDetectionHelper.inputImageWidth, FaceDetectionHelper.inputImageHeight, BitmapAlphaMode.Premultiplied);
-            var img = new SoftwareBitmapSource();
-            await img.SetBitmapAsync(imageInputData);
-            inputImage.Source = img;
 
             faceLandmarkPath.Fill = new SolidColorBrush(Windows.UI.Colors.Green);
             faceRectanglePath.Stroke = new SolidColorBrush(Windows.UI.Colors.Red);
             faceRectanglePath.StrokeThickness = 1;
+
+            recognizeButton.Visibility = Visibility.Collapsed;
         }
 
         private async Task LoadFaceDetectionModelAsync()
@@ -106,7 +105,6 @@ namespace FaceRecognitionUWP
             landmarkModelGen = await LandmarkModel.CreateFromStreamAsync(modelFile as IRandomAccessStreamReference);
         }
 
-
         /// <summary>
         /// Pick an image from the local storage.
         /// </summary>
@@ -117,7 +115,6 @@ namespace FaceRecognitionUWP
             {
                 using (var fs = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
                 {
-
                     using (var tempStream = fs.CloneStream())
                     {
                         SoftwareBitmap softImg;
@@ -125,13 +122,17 @@ namespace FaceRecognitionUWP
                         var img = new SoftwareBitmapSource();
                         await img.SetBitmapAsync(UpdateImageInputData(softImg));
                         inputImage.Source = img;
-
+                        recognizeButton.Visibility = Visibility.Visible;
                         ClearPreviousFaceRectangles();
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Update the image data used for face detection with the lastest image input.
+        /// Input image comes from local storage or video frame.
+        /// </summary>
         private SoftwareBitmap UpdateImageInputData(SoftwareBitmap rawImage)
         {
             SoftwareBitmap inputBitmap = SoftwareBitmap.Convert(rawImage, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
@@ -151,10 +152,11 @@ namespace FaceRecognitionUWP
         {
             DetectFaces();
         }
-            /// <summary>
-            /// Load the picked image and preprocessed it as the model input.
-            /// The function should excute after the image is loaded.
-            /// </summary>
+
+        /// <summary>
+        /// Load the picked image and preprocessed it as the model input.
+        /// The function should excute after the image is loaded.
+        /// </summary>
         private async void DetectFaces()
         {
             
@@ -182,68 +184,86 @@ namespace FaceRecognitionUWP
             float scaleRatioWidth = (float)outputWidth / (float)FaceDetectionHelper.inputImageWidth;
             float scaleRatioHeight = (float)outputHeight / (float)FaceDetectionHelper.inputImageHeight;
 
-
-            // Find face landmarks and store it in UI
-            int landmarkInputSize = 56;
-            
-            var faceLandmarkGeometryGroup = new GeometryGroup();
-            closestDistance = 10000.0f;
-            foreach (FaceDetectionInfo faceRect in faceRects)
+            if (ShowDetail)
             {
-                int x = (int)faceRect.X1;
-                int y = (int)faceRect.Y1;
-                int width = (int)(faceRect.X2 - faceRect.X1) + 1;
-                int height = (int)(faceRect.Y2 - faceRect.Y1) + 1;
-                SoftwareBitmap croppedBitmap = new SoftwareBitmap(imageInputData.BitmapPixelFormat, landmarkInputSize, landmarkInputSize, BitmapAlphaMode.Ignore);
-                openCVHelper.CropResize(imageInputData, croppedBitmap, x, y, width, height, landmarkInputSize, landmarkInputSize);
-                landmarkInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(croppedBitmap);
-                landmarkOutput = await landmarkModelGen.EvaluateAsync(landmarkInput);
-                List<FaceLandmark> faceLandmarks = (List<FaceLandmark>)FaceLandmarkHelper.Predict(landmarkOutput.output, x, y, width, height);
-                
-                if (faceLandmarks.Count > 0)
+                // Find face landmarks and store it in UI
+                int landmarkInputSize = 56;
+                closestDistance = 10000.0f;
+                var faceLandmarkGeometryGroup = new GeometryGroup();
+
+                foreach (FaceDetectionInfo faceRect in faceRects)
                 {
-                    foreach (FaceLandmark mark in faceLandmarks)
+                    int x = (int)faceRect.X1;
+                    int y = (int)faceRect.Y1;
+                    int width = (int)(faceRect.X2 - faceRect.X1) + 1;
+                    int height = (int)(faceRect.Y2 - faceRect.Y1) + 1;
+
+                    // Generate Facial Landmarks with Onnx Model
+                    SoftwareBitmap croppedBitmap = new SoftwareBitmap(imageInputData.BitmapPixelFormat, landmarkInputSize, landmarkInputSize, BitmapAlphaMode.Ignore);
+                    openCVHelper.CropResize(imageInputData, croppedBitmap, x, y, width, height, landmarkInputSize, landmarkInputSize);
+                    landmarkInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(croppedBitmap);
+                    landmarkOutput = await landmarkModelGen.EvaluateAsync(landmarkInput);
+                    List<FaceLandmark> faceLandmarks = (List<FaceLandmark>)FaceLandmarkHelper.Predict(landmarkOutput.output, x, y, width, height);
+
+                    if (faceLandmarks.Count > 0)
                     {
-                        var ellipse = new EllipseGeometry();
-
-                        ellipse.Center = new Point(
-                            (int)(mark.X * scaleRatioWidth + marginHorizontal),
-                            (int)(mark.Y * scaleRatioHeight + marginVertical));
-                        ellipse.RadiusX = 2;
-                        ellipse.RadiusY = 2;
-                        faceLandmarkGeometryGroup.Children.Add(ellipse);
+                        foreach (FaceLandmark mark in faceLandmarks)
+                        {
+                            var ellipse = new EllipseGeometry
+                            {
+                                Center = new Point(
+                                (int)(mark.X * scaleRatioWidth + marginHorizontal),
+                                (int)(mark.Y * scaleRatioHeight + marginVertical)),
+                                RadiusX = 2,
+                                RadiusY = 2
+                            };
+                            faceLandmarkGeometryGroup.Children.Add(ellipse);
+                        }
+                        float distance = ImageHelper.CalculateCameraDistance(cameraFocalLength, faceLandmarks[40], faceLandmarks[46]);
+                        closestDistance = distance < closestDistance ? distance : closestDistance;
                     }
-                    float distance = ImageHelper.CalculateCameraDistance(cameraFocalLength, faceLandmarks[40], faceLandmarks[46]);
-                    closestDistance = distance < closestDistance ? distance : closestDistance;
                 }
-                
-            }
-            closestDistance = closestDistance == 10000.0f ? 0.0f : closestDistance;
-            detectedFaceText.Text = $"Distance: {closestDistance} cm";
+                closestDistance = closestDistance == 10000.0f ? 0.0f : closestDistance;
+                detailText.Text = $"Distance: {closestDistance} cm";
 
+                faceLandmarkPath.Data = faceLandmarkGeometryGroup;
+            }
+            else
+            {
+                detailText.Text = "";
+            }
+            
             // Draw rectangles of detected faces on top of image
             var faceGeometryGroup = new GeometryGroup();
             foreach (FaceDetectionInfo face in faceRects)
-            { 
-                var rectangle = new RectangleGeometry();
-                
-                rectangle.Rect = new Rect(
+            {
+                var rectangle = new RectangleGeometry
+                {
+                    Rect = new Rect(
                     (int)(face.X1 * scaleRatioWidth + marginHorizontal),
                     (int)(face.Y1 * scaleRatioHeight + marginVertical),
                     (int)(face.X2 - face.X1 + 1) * scaleRatioWidth,
-                    (int)(face.Y2 - face.Y1 + 1) * scaleRatioHeight) ;
+                    (int)(face.Y2 - face.Y1 + 1) * scaleRatioHeight)
+                };
                 faceGeometryGroup.Children.Add(rectangle);
             }
-
-            faceLandmarkPath.Data = faceLandmarkGeometryGroup;
             faceRectanglePath.Data = faceGeometryGroup;
+            
             ClearPreviousFaceRectangles();
-            facePathes.Add(faceLandmarkPath);
+            
             facePathes.Add(faceRectanglePath);
             imageGrid.Children.Add(faceRectanglePath);
-            imageGrid.Children.Add(faceLandmarkPath);
+
+            if (ShowDetail)
+            {
+                facePathes.Add(faceLandmarkPath);
+                imageGrid.Children.Add(faceLandmarkPath);
+            }
         }
 
+        /// <summary>
+        /// Toggle between Image Mode and Camera Mode.
+        /// </summary>
         private async void ToggleModeButton_Click(object sender, RoutedEventArgs e)
         {
             if(CameraMode)
@@ -252,20 +272,24 @@ namespace FaceRecognitionUWP
                 mediaFrameReader.FrameArrived -= ColorFrameReader_FrameArrived;
                 mediaCapture.Dispose();
                 mediaCapture = null;
-                detectionModeText.Text = "Mode: < Image >";
+                detectionModeText.Text = "Mode: Image";
+                selectButton.Visibility = Visibility.Visible;
+                recognizeButton.Visibility = Visibility.Visible;
                 CameraMode = false;
             } else
             {
                 InitializeCamera();
-                detectionModeText.Text = "Mode: < Camera >";
+                detectionModeText.Text = "Mode: Camera";
+                selectButton.Visibility = Visibility.Collapsed;
+                recognizeButton.Visibility = Visibility.Collapsed;
                 CameraMode = true;
             }
         }
 
         private void ToggleDistanceButton_Click(object sender, RoutedEventArgs e)
         {
-            // inkCanvas.InkPresenter.StrokeContainer.Clear();
-            // numberLabel.Text = "";
+            ShowDetail = !ShowDetail;
+            DetectFaces();
         }
 
         /// <summary>
@@ -284,6 +308,10 @@ namespace FaceRecognitionUWP
             }
         }
 
+        /// <summary>
+        /// Get camera frame and feed as model input.
+        /// Implementation is from the UWP official tutorial.
+        /// </summary>
         public async void InitializeCamera()
         {
             var frameSourceGroups = await MediaFrameSourceGroup.FindAllAsync();
@@ -373,10 +401,11 @@ namespace FaceRecognitionUWP
                         SoftwareBitmap latestBitmap;
                         while ((latestBitmap = Interlocked.Exchange(ref backBuffer, null)) != null)
                         {
-                            var imageSource = (SoftwareBitmapSource)inputImage.Source;
+                            var img = new SoftwareBitmapSource();
+                            await img.SetBitmapAsync(latestBitmap);
+                            inputImage.Source = img;
                             UpdateImageInputData(latestBitmap);
                             DetectFaces();
-                            await imageSource.SetBitmapAsync(latestBitmap);
                             latestBitmap.Dispose();
                         }
 
@@ -384,7 +413,7 @@ namespace FaceRecognitionUWP
                     });
             }
 
-            mediaFrameReference.Dispose();
+            mediaFrameReference?.Dispose();
         }
     }
 }

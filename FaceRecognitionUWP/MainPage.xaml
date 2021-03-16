@@ -27,9 +27,9 @@
             Grid.Row="0"
             Grid.Column="0" />
         <TextBlock
-            x:Name="detectedFaceText"
+            x:Name="detailText"
             Text=""
-            FontSize="36"
+            FontSize="20"
             VerticalAlignment="Center"
             Margin="20,0,0,0"
             Grid.Row="0"

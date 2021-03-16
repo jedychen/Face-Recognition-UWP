@@ -139,8 +139,6 @@ namespace FaceRecognitionUWP
             IReadOnlyList<float> vectorScores = scores.GetAsVectorView();
             IList<float> scoreList = vectorScores.ToList();
             long numAnchors = scores.Shape[1];
-            System.Diagnostics.Debug.WriteLine("numAnchors");
-            System.Diagnostics.Debug.WriteLine(numAnchors);
             for (var i = 0; i < numAnchors; i++)
                 if (scoreList[i * 2 + 1] > scoreThreshold)
                 {
@@ -217,29 +215,7 @@ namespace FaceRecognitionUWP
                     }
                 }
 
-                // NonMaximumSuppressionMode Hard
                 output.Add(buf[0]);
-
-                // NonMaximumSuppressionMode Blending
-                // From Blaze Face
-                /*var total = 0d;
-                for (var j = 0; j < buf.Count; j++)
-                {
-                    total += Math.Exp(buf[j].Score);
-                }
-
-                var rects = new FaceDetectionInfo();
-                for (var j = 0; j < buf.Count; j++)
-                {
-                    var rate = Math.Exp(buf[j].Score) / total;
-                    rects.X1 += (float)(buf[j].X1 * rate);
-                    rects.Y1 += (float)(buf[j].Y1 * rate);
-                    rects.X2 += (float)(buf[j].X2 * rate);
-                    rects.Y2 += (float)(buf[j].Y2 * rate);
-                    rects.Score += (float)(buf[j].Score * rate);
-                }
-
-                output.Add(rects);*/
             }
         }
     }
