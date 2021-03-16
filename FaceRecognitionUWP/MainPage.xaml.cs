@@ -13,22 +13,14 @@ using Microsoft.AI.MachineLearning;
 #else
 using Windows.AI.MachineLearning;
 #endif
-using Windows.Media;
 using Windows.Storage.Streams;
 using System.Threading.Tasks;
 
-using System.Runtime.InteropServices;
 using Windows.UI.Xaml.Shapes;
-using Windows.UI.Xaml.Media;
 using Windows.Media.Capture;
 using Windows.Media.Capture.Frames;
-using Windows.Devices.Enumeration;
 using System.Threading;
 using Windows.UI.Core;
-using Windows.Media.Core;
-using System.Diagnostics;
-using Windows.Media.Devices;
-using Windows.Media.Audio;
 using Windows.Media.MediaProperties;
 using System.Numerics;
 
@@ -240,7 +232,7 @@ namespace FaceRecognitionUWP
                     }
                 }
                 closestDistance = closestDistance == 10000.0f ? 0.0f : closestDistance;
-                detailText.Text = $"Distance: {closestDistance} cm";
+                detailText.Text = $"Distance: {(int)closestDistance} cm";
             }
             else
             {
@@ -367,7 +359,11 @@ namespace FaceRecognitionUWP
             if(videoMediaFrame != null)
             {
                 if(videoMediaFrame.CameraIntrinsics != null)
+                {
                     cameraFocalLength = videoMediaFrame.CameraIntrinsics.FocalLength;
+                    System.Diagnostics.Debug.WriteLine("FocalLength: " + cameraFocalLength.X + " " + cameraFocalLength.Y);
+                }
+                    
             }
             var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
 

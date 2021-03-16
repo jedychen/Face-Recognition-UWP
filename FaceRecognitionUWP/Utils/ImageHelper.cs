@@ -1,23 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Windows.AI.MachineLearning;
 using Windows.Graphics.Imaging;
-using Windows.Media;
-using Windows.Media.MediaProperties;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.Media.Capture.Frames;
-using Windows.Devices.Enumeration;
-using Windows.Media.Capture;
-using System.Threading;
-using Windows.UI.Core;
-using Windows.Media.Core;
-using System.Diagnostics;
-using Windows.Media.Devices;
-using Windows.Media.Audio;
 using System.Numerics;
 
 namespace FaceRecognitionUWP
@@ -61,7 +47,7 @@ namespace FaceRecognitionUWP
         {
             float distance = 0.0f;
             float AVERAGE_EYE_DISTANCE = 6.0f; //cm
-            distance = (float)330.0f * (AVERAGE_EYE_DISTANCE / eyeDistance);
+            distance = (float)focalLength.X * (AVERAGE_EYE_DISTANCE / eyeDistance);
             return distance;
         }
     }
