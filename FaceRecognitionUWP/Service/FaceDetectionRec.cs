@@ -1,6 +1,6 @@
 ﻿namespace FaceRecognitionUWP
 {
-    public sealed class FaceDetectionInfo
+    public sealed class FaceDetectionRec
     {
         #region Properties
 

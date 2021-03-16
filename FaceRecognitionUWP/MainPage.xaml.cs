@@ -37,58 +37,80 @@ namespace FaceRecognitionUWP
    
     public sealed partial class MainPage : Page
     {
+        #region Properties
         // Onnx Model for face detection
         private RfbModel rfbModelGen;
-        private RfbInput rfbInput = new RfbInput();
+        private RfbInput rfbInput;
         private RfbOutput rfbOutput;
 
         // Onnx Model for face landmarks
         private LandmarkModel landmarkModelGen;
-        private LandmarkInput landmarkInput = new LandmarkInput();
+        private LandmarkInput landmarkInput;
         private LandmarkOutput landmarkOutput;
 
         // UI Display
         private const int imageDisplayMaxWidth = 440;
         private const int imageDisplayMaxHeight = 330;
-        private int imageOriginalWidth = 1;
-        private int imageOriginalHeight = 1;
-        private List<Path> facePathes = new List<Path>();
-        private Path faceLandmarkPath = new Path();
-        private Path faceRectanglePath = new Path();
+        private int imageOriginalWidth;
+        private int imageOriginalHeight;
+        private List<Path> facePathes;
+        private Path faceLandmarkPath;
+        private Path faceRectanglePath;
 
         // Image Capturing & Processing
         SoftwareBitmap imageInputData;
-        OpenCVHelper openCVHelper = new OpenCVBridge.OpenCVHelper();
+        OpenCVHelper openCVHelper;
 
         // Camera Capturing
         MediaCapture mediaCapture;
         MediaFrameReader mediaFrameReader;
         private SoftwareBitmap backBuffer;
-        private bool taskRunning = false;
+        private bool taskRunning;
 
         // Mode Control
-        bool CameraMode = false; // Or image mode: load local images
-        bool ShowDetail = true; // Display facial landmarks and distance
-        Vector2 cameraFocalLength = new Vector2(330.0f, 330.0f);
-        float closestDistance = 10000.0f;
+        bool CameraMode; // Or image mode: load local images
+        bool ShowDetail; // Display facial landmarks and distance
+        Vector2 cameraFocalLength;
+        float closestDistance;
+        #endregion
 
+        #region Initialization
         public MainPage()
         {
             this.InitializeComponent();
-            InitImage();
-            LoadFaceDetectionModelAsync();
-            LoadFaceLandmarkModelAsync();
+            Setup();
         }
 
-        private void InitImage()
+        /// <summary>
+        /// Set up basic properties.
+        /// </summary>
+        private void Setup()
         {
-            imageInputData = new SoftwareBitmap(BitmapPixelFormat.Bgra8, FaceDetectionHelper.inputImageWidth, FaceDetectionHelper.inputImageHeight, BitmapAlphaMode.Premultiplied);
+            rfbInput = new RfbInput();
+            landmarkInput = new LandmarkInput();
 
+            cameraFocalLength = new Vector2(330.0f, 330.0f);
+            closestDistance = 10000.0f;
+            CameraMode = false;
+            ShowDetail = true;
+            taskRunning = false;
+
+            openCVHelper = new OpenCVBridge.OpenCVHelper();
+
+            imageOriginalWidth = 1;
+            imageOriginalHeight = 1;
+            facePathes = new List<Path>();
+            faceLandmarkPath = new Path();
+            faceRectanglePath = new Path();
+
+            imageInputData = new SoftwareBitmap(BitmapPixelFormat.Bgra8, FaceDetectionHelper.inputImageDataWidth, FaceDetectionHelper.inputImageDataHeight, BitmapAlphaMode.Premultiplied);
             faceLandmarkPath.Fill = new SolidColorBrush(Windows.UI.Colors.Green);
             faceRectanglePath.Stroke = new SolidColorBrush(Windows.UI.Colors.Red);
             faceRectanglePath.StrokeThickness = 1;
-
             recognizeButton.Visibility = Visibility.Collapsed;
+
+            LoadFaceDetectionModelAsync();
+            LoadFaceLandmarkModelAsync();
         }
 
         private async Task LoadFaceDetectionModelAsync()
@@ -104,9 +126,11 @@ namespace FaceRecognitionUWP
             StorageFile modelFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri($"ms-appx:///Assets/Models/landmark_detection_56_se_external.onnx"));
             landmarkModelGen = await LandmarkModel.CreateFromStreamAsync(modelFile as IRandomAccessStreamReference);
         }
+        #endregion 
 
+        #region Button Control
         /// <summary>
-        /// Pick an image from the local storage.
+        /// Button Control: Pick an image from the local storage.
         /// </summary>
         private async void SelectButton_Click(object sender, RoutedEventArgs e)
         {
@@ -130,23 +154,7 @@ namespace FaceRecognitionUWP
         }
 
         /// <summary>
-        /// Update the image data used for face detection with the lastest image input.
-        /// Input image comes from local storage or video frame.
-        /// </summary>
-        private SoftwareBitmap UpdateImageInputData(SoftwareBitmap rawImage)
-        {
-            SoftwareBitmap inputBitmap = SoftwareBitmap.Convert(rawImage, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-            imageOriginalWidth = inputBitmap.PixelWidth;
-            imageOriginalHeight = inputBitmap.PixelHeight;
-
-            imageInputData = new SoftwareBitmap(BitmapPixelFormat.Bgra8, FaceDetectionHelper.inputImageWidth, FaceDetectionHelper.inputImageHeight, BitmapAlphaMode.Premultiplied);
-            openCVHelper.Resize(inputBitmap, imageInputData);
-            return inputBitmap;
-        }
-
-        /// <summary>
-        /// Load the picked image and preprocessed it as the model input.
-        /// The function should excute after the image is loaded.
+        /// Button Control: Load the picked image and preprocessed it as the model input.
         /// </summary>
         private void RecognizeButton_Click(object sender, RoutedEventArgs e)
         {
@@ -154,17 +162,48 @@ namespace FaceRecognitionUWP
         }
 
         /// <summary>
+        /// Button Control: Toggle between Image Mode and Camera Mode.
+        /// </summary>
+        private async void ToggleModeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (CameraMode)
+            {
+                await mediaFrameReader.StopAsync();
+                mediaFrameReader.FrameArrived -= ColorFrameReader_FrameArrived;
+                mediaCapture.Dispose();
+                mediaCapture = null;
+                detectionModeText.Text = "Mode: Image";
+                selectButton.Visibility = Visibility.Visible;
+                recognizeButton.Visibility = Visibility.Collapsed;
+                CameraMode = false;
+            }
+            else
+            {
+                InitializeCamera();
+                detectionModeText.Text = "Mode: Camera";
+                selectButton.Visibility = Visibility.Collapsed;
+                recognizeButton.Visibility = Visibility.Collapsed;
+                CameraMode = true;
+            }
+        }
+
+        private void ToggleDistanceButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowDetail = !ShowDetail;
+            DetectFaces();
+        }
+        #endregion 
+
+        /// <summary>
         /// Load the picked image and preprocessed it as the model input.
         /// The function should excute after the image is loaded.
         /// </summary>
         private async void DetectFaces()
         {
-            
             // Detect face using CNN models
             rfbInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(imageInputData);
             rfbOutput = await rfbModelGen.EvaluateAsync(rfbInput);
-            List<FaceDetectionInfo> faceRects = (List<FaceDetectionInfo>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
-
+            List<FaceDetectionRec> faceRects = (List<FaceDetectionRec>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
 
             // Calculate Scaling Ratio
             int outputWidth = 1;
@@ -181,8 +220,8 @@ namespace FaceRecognitionUWP
                 ref outputHeight,
                 ref marginHorizontal,
                 ref marginVertical);
-            float scaleRatioWidth = (float)outputWidth / (float)FaceDetectionHelper.inputImageWidth;
-            float scaleRatioHeight = (float)outputHeight / (float)FaceDetectionHelper.inputImageHeight;
+            float scaleRatioWidth = (float)outputWidth / (float)FaceDetectionHelper.inputImageDataWidth;
+            float scaleRatioHeight = (float)outputHeight / (float)FaceDetectionHelper.inputImageDataHeight;
 
             if (ShowDetail)
             {
@@ -191,7 +230,7 @@ namespace FaceRecognitionUWP
                 closestDistance = 10000.0f;
                 var faceLandmarkGeometryGroup = new GeometryGroup();
 
-                foreach (FaceDetectionInfo faceRect in faceRects)
+                foreach (FaceDetectionRec faceRect in faceRects)
                 {
                     int x = (int)faceRect.X1;
                     int y = (int)faceRect.Y1;
@@ -235,7 +274,7 @@ namespace FaceRecognitionUWP
             
             // Draw rectangles of detected faces on top of image
             var faceGeometryGroup = new GeometryGroup();
-            foreach (FaceDetectionInfo face in faceRects)
+            foreach (FaceDetectionRec face in faceRects)
             {
                 var rectangle = new RectangleGeometry
                 {
@@ -261,37 +300,7 @@ namespace FaceRecognitionUWP
             }
         }
 
-        /// <summary>
-        /// Toggle between Image Mode and Camera Mode.
-        /// </summary>
-        private async void ToggleModeButton_Click(object sender, RoutedEventArgs e)
-        {
-            if(CameraMode)
-            {
-                await mediaFrameReader.StopAsync();
-                mediaFrameReader.FrameArrived -= ColorFrameReader_FrameArrived;
-                mediaCapture.Dispose();
-                mediaCapture = null;
-                detectionModeText.Text = "Mode: Image";
-                selectButton.Visibility = Visibility.Visible;
-                recognizeButton.Visibility = Visibility.Visible;
-                CameraMode = false;
-            } else
-            {
-                InitializeCamera();
-                detectionModeText.Text = "Mode: Camera";
-                selectButton.Visibility = Visibility.Collapsed;
-                recognizeButton.Visibility = Visibility.Collapsed;
-                CameraMode = true;
-            }
-        }
-
-        private void ToggleDistanceButton_Click(object sender, RoutedEventArgs e)
-        {
-            ShowDetail = !ShowDetail;
-            DetectFaces();
-        }
-
+        #region Utils
         /// <summary>
         /// Clear previous rectangles of detected faces
         /// </summary>
@@ -309,8 +318,26 @@ namespace FaceRecognitionUWP
         }
 
         /// <summary>
-        /// Get camera frame and feed as model input.
+        /// Update the image data used for face detection with the lastest image input.
+        /// Input image comes from local storage or video frame.
+        /// </summary>
+        private SoftwareBitmap UpdateImageInputData(SoftwareBitmap rawImage)
+        {
+            SoftwareBitmap inputBitmap = SoftwareBitmap.Convert(rawImage, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+            imageOriginalWidth = inputBitmap.PixelWidth;
+            imageOriginalHeight = inputBitmap.PixelHeight;
+
+            imageInputData = new SoftwareBitmap(BitmapPixelFormat.Bgra8, FaceDetectionHelper.inputImageDataWidth, FaceDetectionHelper.inputImageDataHeight, BitmapAlphaMode.Premultiplied);
+            openCVHelper.Resize(inputBitmap, imageInputData);
+            return inputBitmap;
+        }
+        #endregion
+
+        #region Video Capture
+        /// <summary>
+        /// Video Capture: Initialize Camera Capture.
         /// Implementation is from the UWP official tutorial.
+        /// https://docs.microsoft.com/en-us/windows/uwp/audio-video-camera/process-media-frames-with-mediaframereader
         /// </summary>
         public async void InitializeCamera()
         {
@@ -363,6 +390,11 @@ namespace FaceRecognitionUWP
             await mediaFrameReader.StartAsync();
         }
 
+        /// <summary>
+        /// Video Capture: Get camera frame and feed as model input.
+        /// Implementation is from the UWP official tutorial.
+        /// https://docs.microsoft.com/en-us/windows/uwp/audio-video-camera/process-media-frames-with-mediaframereader
+        /// </summary>
         private void ColorFrameReader_FrameArrived(MediaFrameReader sender, MediaFrameArrivedEventArgs args)
         {
             var mediaFrameReference = sender.TryAcquireLatestFrame();
@@ -404,6 +436,7 @@ namespace FaceRecognitionUWP
                             var img = new SoftwareBitmapSource();
                             await img.SetBitmapAsync(latestBitmap);
                             inputImage.Source = img;
+                            // Detect face and facial landmarks
                             UpdateImageInputData(latestBitmap);
                             DetectFaces();
                             latestBitmap.Dispose();
@@ -415,5 +448,6 @@ namespace FaceRecognitionUWP
 
             mediaFrameReference?.Dispose();
         }
+        #endregion
     }
 }

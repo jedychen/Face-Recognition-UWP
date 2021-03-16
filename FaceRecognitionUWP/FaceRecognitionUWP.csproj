@@ -128,7 +128,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Service\FaceDetectionHelper.cs" />
-    <Compile Include="Service\FaceDetectionInfo.cs" />
+    <Compile Include="Service\FaceDetectionRec.cs" />
     <Compile Include="Service\FaceLandmarkHelper.cs" />
     <Compile Include="Service\FaceLandmarkInfo.cs" />
     <Compile Include="Utils\ImageHelper.cs" />
