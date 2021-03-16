@@ -22,13 +22,22 @@ using System.Numerics;
 
 namespace FaceRecognitionUWP
 {
+    /// <summary>Class <c>ImageHelper</c> handles image related tasks.
+    /// </summary>
     public class ImageHelper
     {
+        /// <summary>
+        /// Gets image streams.
+        /// </summary>
         public static async Task<SoftwareBitmap> GetImageAsync(IRandomAccessStream stream)
         {
             BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
             return await decoder.GetSoftwareBitmapAsync();
         }
+
+        /// <summary>
+        /// Opens image picker and allows uses to choose image file.
+        /// </summary>
         public static async Task<StorageFile> PickerImageAsync()
         {
             var imagePicker = new FileOpenPicker()
@@ -45,6 +54,9 @@ namespace FaceRecognitionUWP
             return file;
         }
 
+        /// <summary>
+        /// Resizes image to allow image fits the max width and height.
+        /// </summary>
         public static void ImageStrechedValues(int maxWidth, int maxHeight, int originalWidth, int originalHeight, ref int outputWidth, ref int outputHeight, ref int marginHorizontal, ref int marginVertical)
         {
             if (maxWidth < 0 || maxHeight < 0 || originalWidth <= 0 || originalHeight <= 0)
@@ -72,13 +84,13 @@ namespace FaceRecognitionUWP
             }
         }
 
-        public static float CalculateCameraDistance(Vector2 focalLength, FaceLandmark leftEyePos, FaceLandmark rightEyePos)
+        /// <summary>
+        /// Caculates eye distance to the camera based on camera intrinsics.
+        /// </summary>
+        public static float CalculateCameraDistance(Vector2 focalLength, float eyeDistance)
         {
             float distance = 0.0f;
             float AVERAGE_EYE_DISTANCE = 6.0f; //cm
-            float deltaX = Math.Abs(leftEyePos.X - rightEyePos.X);
-            float deltaY = Math.Abs(leftEyePos.Y - rightEyePos.Y);
-            float eyeDistance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
             distance = (float)330.0f * (AVERAGE_EYE_DISTANCE / eyeDistance);
             return distance;
         }

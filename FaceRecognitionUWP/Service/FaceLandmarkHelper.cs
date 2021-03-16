@@ -1,49 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Numerics.Tensors;
-using System.Drawing;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.Graphics.Imaging;
 using Windows.AI.MachineLearning;
-using System.Runtime.InteropServices;
 
 namespace FaceRecognitionUWP
 {
+    /// <summary>Class <c>FaceLandmarkHelper</c> groups all functions for Detecting Facial Landmarks.
+    /// </summary>
     public class FaceLandmarkHelper
     {
         /// <summary>
-        /// PostProcessing.
-        /// Clip x between 0 and y.
+        /// Processes scors and boxes and generate a list of face rectangles.
         /// </summary>
-        public static IEnumerable<FaceLandmark> Predict(TensorFloat landmarks, int startX, int startY, int imageWidth, int imageHeight)
+        /// <param name="landmarkTensors">landmark output of Onnx model.</param>
+        /// <param name="imageX">X start position of the image.</param>
+        /// <param name="imageY">Y start position of the image.</param>
+        /// <param name="imageWidth">width of the image.</param>
+        /// <param name="imageHeight">height of the image.</param>
+        public static FaceLandmarks Predict(TensorFloat landmarkTensors, int imageX, int imageY, int imageWidth, int imageHeight)
         {
-            var faceLandmarkList = new List<FaceLandmark>();
-            ExtractLandmarks(landmarks, faceLandmarkList, startX, startY, imageWidth, imageHeight);
-
-            return faceLandmarkList;
-        }
-
-        /// <summary>
-        /// PostProcessing.
-        /// Generate a list of BBox containing the detected face info.
-        /// </summary>
-        private static void ExtractLandmarks(TensorFloat landmarkTensors, ICollection<FaceLandmark> faceLandmarkList, int startX, int startY, int width, int height)
-        {
+            var faceLandmarks = new FaceLandmarks();
+            
             IReadOnlyList<float> vectorLandmarks = landmarkTensors.GetAsVectorView();
             IList<float> landmarkFloatList = vectorLandmarks.ToList();
             long numAnchors = (long)Math.Ceiling(landmarkTensors.Shape[1] * 0.5);
             for (var i = 0; i < numAnchors; i++)
-            {        
-                var faceLandmark = new FaceLandmark();
-                faceLandmark.X = landmarkFloatList[i * 2] * width + startX;
-                faceLandmark.Y = landmarkFloatList[i * 2 + 1] * height + startY;
+            {
+                var mark = new FaceLandmark
+                {
+                    X = landmarkFloatList[i * 2] * imageWidth + imageX,
+                    Y = landmarkFloatList[i * 2 + 1] * imageHeight + imageY
+                };
 
-                faceLandmarkList.Add(faceLandmark);
+                faceLandmarks.landmarkList.Add(mark);
             }
+
+            return faceLandmarks;
         }
     }
 }

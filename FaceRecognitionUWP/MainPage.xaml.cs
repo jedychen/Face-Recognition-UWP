@@ -43,7 +43,7 @@ namespace FaceRecognitionUWP
         private RfbInput rfbInput;
         private RfbOutput rfbOutput;
 
-        // Onnx Model for face landmarks
+        // Onnx Model for facial landmarks
         private LandmarkModel landmarkModelGen;
         private LandmarkInput landmarkInput;
         private LandmarkOutput landmarkOutput;
@@ -58,8 +58,8 @@ namespace FaceRecognitionUWP
         private Path faceRectanglePath;
 
         // Image Capturing & Processing
-        SoftwareBitmap imageInputData;
-        OpenCVHelper openCVHelper;
+        SoftwareBitmap imageInputData; // Image data for model input
+        OpenCVHelper openCVHelper; // Wrapper of OpenCV functions in C++
 
         // Camera Capturing
         MediaCapture mediaCapture;
@@ -200,10 +200,10 @@ namespace FaceRecognitionUWP
         /// </summary>
         private async void DetectFaces()
         {
-            // Detect face using CNN models
+            // Detect face using Onnx models
             rfbInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(imageInputData);
             rfbOutput = await rfbModelGen.EvaluateAsync(rfbInput);
-            List<FaceDetectionRec> faceRects = (List<FaceDetectionRec>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
+            List<FaceDetectionRectangle> faceRects = (List<FaceDetectionRectangle>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
 
             // Calculate Scaling Ratio
             int outputWidth = 1;
@@ -230,23 +230,27 @@ namespace FaceRecognitionUWP
                 closestDistance = 10000.0f;
                 var faceLandmarkGeometryGroup = new GeometryGroup();
 
-                foreach (FaceDetectionRec faceRect in faceRects)
+                foreach (FaceDetectionRectangle faceRect in faceRects)
                 {
-                    int x = (int)faceRect.X1;
-                    int y = (int)faceRect.Y1;
-                    int width = (int)(faceRect.X2 - faceRect.X1) + 1;
-                    int height = (int)(faceRect.Y2 - faceRect.Y1) + 1;
+                    int rectX = (int)faceRect.X1;
+                    int rectY = (int)faceRect.Y1;
+                    int rectWidth = (int)(faceRect.X2 - faceRect.X1) + 1;
+                    int rectHeight = (int)(faceRect.Y2 - faceRect.Y1) + 1;
 
                     // Generate Facial Landmarks with Onnx Model
                     SoftwareBitmap croppedBitmap = new SoftwareBitmap(imageInputData.BitmapPixelFormat, landmarkInputSize, landmarkInputSize, BitmapAlphaMode.Ignore);
-                    openCVHelper.CropResize(imageInputData, croppedBitmap, x, y, width, height, landmarkInputSize, landmarkInputSize);
+                    bool cropped = openCVHelper.CropResize(imageInputData, croppedBitmap, rectX, rectY, rectWidth, rectHeight);
+                    if (!cropped)
+                        continue;
+
                     landmarkInput.input = FaceDetectionHelper.SoftwareBitmapToTensorFloat(croppedBitmap);
                     landmarkOutput = await landmarkModelGen.EvaluateAsync(landmarkInput);
-                    List<FaceLandmark> faceLandmarks = (List<FaceLandmark>)FaceLandmarkHelper.Predict(landmarkOutput.output, x, y, width, height);
+                    FaceLandmarks faceLandmarks = (FaceLandmarks)FaceLandmarkHelper.Predict(landmarkOutput.output, rectX, rectY, rectWidth, rectHeight);
 
-                    if (faceLandmarks.Count > 0)
+                    if (faceLandmarks.IsValid)
                     {
-                        foreach (FaceLandmark mark in faceLandmarks)
+                        FaceLandmarks landmarks = new FaceLandmarks();
+                        foreach (FaceLandmark mark in faceLandmarks.landmarkList)
                         {
                             var ellipse = new EllipseGeometry
                             {
@@ -257,8 +261,10 @@ namespace FaceRecognitionUWP
                                 RadiusY = 2
                             };
                             faceLandmarkGeometryGroup.Children.Add(ellipse);
+                            landmarks.landmarkList.Add(mark);
                         }
-                        float distance = ImageHelper.CalculateCameraDistance(cameraFocalLength, faceLandmarks[40], faceLandmarks[46]);
+
+                        float distance = ImageHelper.CalculateCameraDistance(cameraFocalLength, landmarks.EyeDistance);
                         closestDistance = distance < closestDistance ? distance : closestDistance;
                     }
                 }
@@ -274,7 +280,7 @@ namespace FaceRecognitionUWP
             
             // Draw rectangles of detected faces on top of image
             var faceGeometryGroup = new GeometryGroup();
-            foreach (FaceDetectionRec face in faceRects)
+            foreach (FaceDetectionRectangle face in faceRects)
             {
                 var rectangle = new RectangleGeometry
                 {

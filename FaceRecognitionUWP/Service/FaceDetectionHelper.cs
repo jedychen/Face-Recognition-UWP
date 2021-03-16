@@ -30,7 +30,7 @@ namespace FaceRecognitionUWP
 
         /// <summary>
         /// PreProcessing.
-        /// Convert image data in SoftwareBitmap to TensorFloat.
+        /// Converts image data in SoftwareBitmap to TensorFloat.
         /// </summary>
         public static TensorFloat SoftwareBitmapToTensorFloat(SoftwareBitmap image)
         {
@@ -67,7 +67,7 @@ namespace FaceRecognitionUWP
 
         /// <summary>
         /// PreProcessing.
-        /// Normalize the image data in float array.
+        /// Normalizes the image data in float array.
         /// </summary>
         /// <returns>Float array with values between -1 to 1.</returns>
         private static float[] NormalizeFloatArray(float[] src)
@@ -85,15 +85,15 @@ namespace FaceRecognitionUWP
 
         /// <summary>
         /// PostProcessing.
-        /// Process scors and boxes and generate a list of face rectangles.
+        /// Processes scors and boxes and generate a list of face rectangles.
         /// </summary>
         /// <param name="scores">score output of Onnx model.</param>
         /// <param name="boxes">box output of Onnx model.</param>
-        public static IEnumerable<FaceDetectionRec> Predict(TensorFloat scores, TensorFloat boxes)
+        public static IEnumerable<FaceDetectionRectangle> Predict(TensorFloat scores, TensorFloat boxes)
         {
-            var boundingBoxCollection = new List<FaceDetectionRec>();
+            var boundingBoxCollection = new List<FaceDetectionRectangle>();
             GenerateBBox(boundingBoxCollection, scores, boxes, _scoreThreshold);
-            var faceList = new List<FaceDetectionRec>();
+            var faceList = new List<FaceDetectionRectangle>();
             NonMaximumSuppression(boundingBoxCollection, faceList, _iouThreshold);
 
             return faceList;
@@ -101,14 +101,14 @@ namespace FaceRecognitionUWP
 
         /// <summary>
         /// PostProcessing.
-        /// Generate a list of BBox containing the detected face info.
+        /// Generates a list of BBox containing the detected face info.
         /// </summary>
         /// <param name="boundingBoxCollection">empty list of FaceDetectionRec to store results.</param>
         /// <param name="scores">score output of Onnx model.</param>
         /// <param name="boxes">box output of Onnx model.</param>
         /// <param name="scoreThreshold">threshold of score between 0 and 1 for filtering boxes.</param>
         private static void GenerateBBox(
-            ICollection<FaceDetectionRec> boundingBoxCollection,
+            ICollection<FaceDetectionRectangle> boundingBoxCollection,
             TensorFloat scores, TensorFloat boxes,
             float scoreThreshold)
         {
@@ -124,7 +124,7 @@ namespace FaceRecognitionUWP
             for (var i = 0; i < numAnchors; i++)
                 if (scoreList[i * 2 + 1] > scoreThreshold)
                 {
-                    var rect = new FaceDetectionRec
+                    var rect = new FaceDetectionRectangle
                     {
                         X1 = boxList[i * 4] * inputImageDataWidth,
                         Y1 = boxList[i * 4 + 1] * inputImageDataHeight,
@@ -140,7 +140,7 @@ namespace FaceRecognitionUWP
         /// <summary>
         /// Utils: Filter non-overlapped detected BBox with hard NMS.
         /// </summary>
-        private static void NonMaximumSuppression(List<FaceDetectionRec> input, ICollection<FaceDetectionRec> output, float iouThreshold)
+        private static void NonMaximumSuppression(List<FaceDetectionRectangle> input, ICollection<FaceDetectionRectangle> output, float iouThreshold)
         {
             input.Sort((f1, f2) => f2.Score.CompareTo(f1.Score));
             var boxNum = input.Count;
@@ -151,7 +151,7 @@ namespace FaceRecognitionUWP
                 if (merged[i] > 0)
                     continue;
 
-                var buf = new List<FaceDetectionRec>
+                var buf = new List<FaceDetectionRectangle>
                 {
                     input[i]
                 };
@@ -198,7 +198,7 @@ namespace FaceRecognitionUWP
         /// <summary>
         /// Utils: Compute the areas of rectangles given two corners.
         /// </summary>
-        private static float AreaOf(FaceDetectionRec rect)
+        private static float AreaOf(FaceDetectionRectangle rect)
         {
             var h = Clip(rect.Y2 - rect.Y1 + 1, 0);
             var w = Clip(rect.X2 - rect.X1 + 1, 0);
@@ -209,9 +209,9 @@ namespace FaceRecognitionUWP
         /// Utils: Return intersection-over-union (Jaccard index) of 2 boxes.
         /// </summary>
         /// <returns>Float value > 0 if overlapped area exists. -1 if overlapped area doesn't exist.</returns>
-        private static float IOUOf(FaceDetectionRec rect1, FaceDetectionRec rect2)
+        private static float IOUOf(FaceDetectionRectangle rect1, FaceDetectionRectangle rect2)
         {
-            var rect = new FaceDetectionRec
+            var rect = new FaceDetectionRectangle
             {
                 X1 = Math.Max(rect1.X1, rect2.X1),
                 Y1 = Math.Max(rect1.Y1, rect2.Y1),

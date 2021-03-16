@@ -1,6 +1,8 @@
 ﻿namespace FaceRecognitionUWP
 {
-    public sealed class FaceDetectionRec
+    /// <summary>Class to store rectangle information of detected faces
+    /// </summary>
+    public sealed class FaceDetectionRectangle
     {
         #region Properties
 
