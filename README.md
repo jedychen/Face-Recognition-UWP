@@ -50,9 +50,10 @@ The Onnx model processing for face detection, faical landmarks is based on the p
 	2. Click "Recognize" to detect face and display a rectangle for detected faces
 	3. Toggle "Distance" to activate facial landmarks
 4. Camera Mode
-	1. Click "Image/Camera" to activate Camera Mode
+	1. Click "Live Camera" to activate Camera Mode
 	2. Toggle "Distance" to activate camera distance estimation
 5. There are some face images in `FaceRecognitionUWP/Assets/Images` for testing face detection.
+
 <!-- LICENSE -->
 ## License
 
