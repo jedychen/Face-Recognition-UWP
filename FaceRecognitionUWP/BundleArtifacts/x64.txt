@@ -1,0 +1,2 @@
+MainPackage=C:\Users\JedyC\Documents\Programming\UWP\FaceRecognition\Face-Recognition-UWP\FaceRecognitionUWP\bin\x64\Release\FaceRecognitionUWP_1.0.2.0_x64.msix
+SymbolPackage=C:\Users\JedyC\Documents\Programming\UWP\FaceRecognition\Face-Recognition-UWP\FaceRecognitionUWP\obj\x64\Release\Symbols\FaceRecognitionUWP_1.0.2.0_x64.appxsym

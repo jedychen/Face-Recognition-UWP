@@ -24,7 +24,7 @@
             Text="Face Detection Demo"
             FontFamily="Helvetica"
             FontSize="40"
-            Foreground="{ThemeResource SystemAccentColorDark1}"
+            Foreground="DarkBlue"
             VerticalAlignment="Center"
             Grid.Row="0"/>
         <TextBlock
@@ -33,7 +33,7 @@
             FontSize="24"
             VerticalAlignment="Center"
             Margin="20,0,0,0"
-            Foreground="{ThemeResource SystemColorHighlightColor}"
+            Foreground="RoyalBlue"
             Grid.Row="0"
             Grid.Column="1" />
 
@@ -41,7 +41,7 @@
             Background="Transparent"
             Grid.Row="1"
             Grid.Column="1">
-            <Border Background="GhostWhite" BorderBrush="{ThemeResource SystemAccentColorDark1}" BorderThickness="1">
+            <Border Background="GhostWhite" BorderBrush="Gray" BorderThickness="1">
                 <StackPanel Margin="20">
                     <CheckBox
                         x:Name="cameraModeCheckBox"
@@ -72,8 +72,8 @@
                         Width="200"
                         Margin="0,20,0,0"
                         CornerRadius="5"
-                        Foreground="{ThemeResource SystemAltHighColor}"
-                        Background="{ThemeResource SystemAccentColorDark3}"
+                        Foreground="White"
+                        Background="RoyalBlue"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Left"/>
                     <Button 
@@ -86,8 +86,8 @@
                         Width="200"
                         Margin="0,20,0,0"
                         CornerRadius="5"
-                        Foreground="{ThemeResource SystemAltHighColor}"
-                        Background="{ThemeResource SystemColorHighlightColor}"
+                        Foreground="White"
+                        Background="OrangeRed"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Left"/>
                 </StackPanel>

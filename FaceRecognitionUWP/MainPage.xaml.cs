@@ -43,7 +43,6 @@ namespace FaceRecognitionUWP
         private const int imageDisplayMaxHeight = 330;
         private int imageOriginalWidth;
         private int imageOriginalHeight;
-        List<FaceLandmarks> faceLandmarksList;
 
         // Image Capturing & Processing
         SoftwareBitmap imageInputData; // Image data for model input
@@ -81,7 +80,7 @@ namespace FaceRecognitionUWP
             cameraFocalLength = new Vector2(330.0f, 330.0f);
             closestDistance = 10000.0f;
             CameraMode = false;
-            ShowDetail = true;
+            ShowDetail = false;
             taskRunning = false;
 
             openCVHelper = new OpenCVBridge.OpenCVHelper();
@@ -94,7 +93,7 @@ namespace FaceRecognitionUWP
             
             recognizeButton.Visibility = Visibility.Collapsed;
 
-            faceLandmarksList = new List<FaceLandmarks>();
+            
 
             LoadFaceDetectionModelAsync();
             LoadFaceLandmarkModelAsync();
@@ -205,10 +204,13 @@ namespace FaceRecognitionUWP
             List<FaceDetectionRectangle> faceRects = (List<FaceDetectionRectangle>)FaceDetectionHelper.Predict(rfbOutput.scores, rfbOutput.boxes);
 
             // Detect facial landmarks using Onnx models
+
+            List<FaceLandmarks> faceLandmarksList = new List<FaceLandmarks>();
             if (ShowDetail)
             {
                 closestDistance = 10000.0f;
-                faceLandmarksList.Clear();
+
+                System.Diagnostics.Debug.WriteLine("Total: "+ faceRects.Count);
 
                 foreach (FaceDetectionRectangle faceRect in faceRects)
                 {
@@ -223,6 +225,7 @@ namespace FaceRecognitionUWP
                         FaceLandmarkHelper.inputImageDataSize,
                         FaceLandmarkHelper.inputImageDataSize,
                         BitmapAlphaMode.Ignore);
+                    System.Diagnostics.Debug.WriteLine("Crop");
                     bool cropped = openCVHelper.CropResize(imageInputData, croppedBitmap, rectX, rectY, rectWidth, rectHeight);
                     if (!cropped)
                         continue;
@@ -232,17 +235,23 @@ namespace FaceRecognitionUWP
                     landmarkOutput = await landmarkModelGen.EvaluateAsync(landmarkInput);
                     FaceLandmarks faceLandmarks =
                         (FaceLandmarks)FaceLandmarkHelper.Predict(landmarkOutput.output, rectX, rectY, rectWidth, rectHeight);
-
+                    
                     // Calculate camera distance
+
                     if (faceLandmarks.IsValid)
                     {
+                        System.Diagnostics.Debug.WriteLine("Valid: "+ faceLandmarks.landmarkList.Count);
                         float distance = ImageHelper.CalculateCameraDistance(cameraFocalLength, faceLandmarks.EyeDistance);
                         closestDistance = distance < closestDistance ? distance : closestDistance;
                         faceLandmarksList.Add(faceLandmarks);
                     }
+                    croppedBitmap.Dispose();
                 }
                 closestDistance = closestDistance == 10000.0f ? 0.0f : closestDistance;
-                detailText.Text = $"Distance: {(int)closestDistance} cm";
+                if(CameraMode)
+                    detailText.Text = $"Distance: {(int)closestDistance} cm";
+                else
+                    detailText.Text = "";
             }
             else
             {
@@ -259,6 +268,8 @@ namespace FaceRecognitionUWP
 
             foreach (Path path in drawingFace.pathes)
                 imageGrid.Children.Add(path);
+
+            faceLandmarksList.Clear();
         }
 
         #region Utils
