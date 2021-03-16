@@ -46,7 +46,7 @@ namespace FaceRecognitionUWP
         public static float CalculateCameraDistance(Vector2 focalLength, float eyeDistance)
         {
             float distance = 0.0f;
-            float AVERAGE_EYE_DISTANCE = 6.0f; //cm
+            float AVERAGE_EYE_DISTANCE = 6.2f; //cm
             distance = (float)focalLength.X * (AVERAGE_EYE_DISTANCE / eyeDistance);
             return distance;
         }

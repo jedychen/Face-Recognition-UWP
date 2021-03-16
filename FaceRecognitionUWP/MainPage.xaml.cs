@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.Storage;
@@ -11,7 +10,6 @@ using Windows.Graphics.Imaging;
 #if USE_WINML_NUGET
 using Microsoft.AI.MachineLearning;
 #else
-using Windows.AI.MachineLearning;
 #endif
 using Windows.Storage.Streams;
 using System.Threading.Tasks;
@@ -26,7 +24,7 @@ using System.Numerics;
 
 namespace FaceRecognitionUWP
 {
-   
+
     public sealed partial class MainPage : Page
     {
         #region Properties
@@ -155,31 +153,43 @@ namespace FaceRecognitionUWP
         /// </summary>
         private async void ToggleModeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (CameraMode)
-            {
-                await mediaFrameReader.StopAsync();
-                mediaFrameReader.FrameArrived -= ColorFrameReader_FrameArrived;
-                mediaCapture.Dispose();
-                mediaCapture = null;
-                detectionModeText.Text = "Mode: Image";
-                selectButton.Visibility = Visibility.Visible;
-                recognizeButton.Visibility = Visibility.Collapsed;
-                CameraMode = false;
-            }
-            else
+            if (cameraModeCheckBox.IsChecked == true)
             {
                 InitializeCamera();
-                detectionModeText.Text = "Mode: Camera";
                 selectButton.Visibility = Visibility.Collapsed;
                 recognizeButton.Visibility = Visibility.Collapsed;
                 CameraMode = true;
             }
+            else
+            {
+                if (mediaFrameReader != null)
+                {
+                    await mediaFrameReader.StopAsync();
+                    mediaFrameReader.FrameArrived -= ColorFrameReader_FrameArrived;
+                    mediaCapture.Dispose();
+                    mediaCapture = null;
+                }               
+                selectButton.Visibility = Visibility.Visible;
+                recognizeButton.Visibility = Visibility.Collapsed;
+                CameraMode = false;
+            }
         }
 
-        private void ToggleDistanceButton_Click(object sender, RoutedEventArgs e)
+        private void ToggleDistanceButton_Toggled (object sender, RoutedEventArgs e)
         {
-            ShowDetail = !ShowDetail;
-            DetectFaces();
+            ToggleSwitch toggleSwitch = sender as ToggleSwitch;
+            if (toggleSwitch != null)
+            {
+                if (toggleSwitch.IsOn == true)
+                {
+                    ShowDetail = true;
+                }
+                else
+                {
+                    ShowDetail = false;
+                }
+                DetectFaces();
+            }
         }
         #endregion 
 
